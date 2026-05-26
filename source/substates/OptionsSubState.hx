@@ -104,8 +104,8 @@ class OptionsSubState extends SuffSubState {
 		}, Preferences.data.enableBellyCreaks);
 
 		createBooleanOption("enableFarts", function(value:Bool) {
-			Preferences.data.enableBellyCreaks = value;
-		}, Preferences.data.enableBellyCreaks);
+			Preferences.data.enableFarts = value;
+		}, Preferences.data.enableFarts);
 
 		// GRAPHICS SETTINGS
 		createHeading('visuals');

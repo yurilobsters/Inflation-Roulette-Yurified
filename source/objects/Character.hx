@@ -12,6 +12,7 @@ import states.PlayState;
 import tjson.TJSON as Json;
 import shaders.FlashingShader;
 import objects.particles.Swirl;
+
 // import objects.particleEmitters.PuffEmitter;
 import objects.particleEmitters.FartEmitter;
 
@@ -228,6 +229,8 @@ class Character extends FlxSprite {
 			if (fartThreshold > -1 && currentPressure >= fartThreshold) {
 				fartTimer -= elapsed;
 				if (fartTimer < 0) {
+					trace('Fart! P:', currentPressure, '/', maxPressure);
+
 					var intensity = Math.min(1, (currentPressure - fartThreshold + 1) / (maxPressure - fartThreshold + 1));
 					fartTimer = FlxG.random.float(1.0, 5.0) / intensity;
 					SuffState.playSound(Paths.soundRandom('game/belly/farts/fart', 1, Constants.FARTS_SAMPLE_COUNT), intensity * 0.65,

@@ -35,6 +35,8 @@ class Paths {
 		var gurgleType:String = 'air';
 		var belchType:String = 'air';
 		var burstType:String = 'air';
+		var fartType:String = 'air';
+
 		for (i in 1...Constants.CREAKS_SAMPLE_COUNT + 1) {
 			var key:String = 'game/belly/creaks/creak_' + i;
 			precacheSound(key);
@@ -45,6 +47,10 @@ class Paths {
 		}
 		for (i in 1...Constants.BELCHES_SAMPLE_COUNT + 1) {
 			var key:String = 'game/belly/belches/belch_' + i;
+			precacheSound(key);
+		}
+		for (i in 1...Constants.FARTS_SAMPLE_COUNT + 1) {
+			var key:String = 'game/belly/farts/fart_' + i;
 			precacheSound(key);
 		}
 		for (i in 1...Constants.FWOOMPS_SAMPLE_COUNT + 1) {

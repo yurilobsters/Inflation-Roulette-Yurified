@@ -38,7 +38,7 @@
 
 	<!-- __________________________ Game Assets & Etc. __________________________ -->
 	
-	<define name="_ALLOW_CRASH_HANDLER"/>
+	<!-- <define name="_ALLOW_CRASH_HANDLER"/> -->
 	<section if="_OFFICIAL_BUILD">
 		<define name="_CHECK_FOR_UPDATES"/>
 		<define name="_ALLOW_ADDONS" unless="web" />
