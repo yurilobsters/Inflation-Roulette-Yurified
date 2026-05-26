@@ -234,7 +234,7 @@ class Character extends FlxSprite {
 						FlxG.random.float(0.7, 1.3));
 
 					FlxG.state.members.insert(FlxG.state.members.indexOf(PlayState.instance.characterGroup) - 1,
-						new FartEmitter(this.x, this.y - this.height * 0.25));
+						new FartEmitter(this.x, this.y - this.height * 0.25, !this.flipX ? -225 : -90, !this.flipX ? -90 : 45, intensity));
 				}
 			}
 		}
