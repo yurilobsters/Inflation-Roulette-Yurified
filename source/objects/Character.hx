@@ -223,21 +223,20 @@ class Character extends FlxSprite {
 					}
 				}
 			}
-		}
+			if (Preferences.data.enableFarts) {
+				if (fartThreshold > -1 && currentPressure >= fartThreshold) {
+					fartTimer -= elapsed;
+					if (fartTimer < 0) {
+						trace('Fart! P:', currentPressure, '/', maxPressure);
 
-		if (Preferences.data.enableFarts) {
-			if (fartThreshold > -1 && currentPressure >= fartThreshold) {
-				fartTimer -= elapsed;
-				if (fartTimer < 0) {
-					trace('Fart! P:', currentPressure, '/', maxPressure);
-
-					var intensity = Math.min(1, (currentPressure - fartThreshold + 1) / (maxPressure - fartThreshold + 1));
-					fartTimer = FlxG.random.float(1.0, 5.0) / intensity;
-					SuffState.playSound(Paths.soundRandom('game/belly/farts/fart', 1, Constants.FARTS_SAMPLE_COUNT), intensity * 0.65,
+						var intensity = Math.min(1, (currentPressure - fartThreshold + 1) / (maxPressure - fartThreshold + 1));
+						fartTimer = FlxG.random.float(1.0, 5.0) / intensity;
+						SuffState.playSound(Paths.soundRandom('game/belly/farts/fart', 1, Constants.FARTS_SAMPLE_COUNT), intensity * 0.65,
 						FlxG.random.float(0.7, 1.3));
 
-					FlxG.state.members.insert(FlxG.state.members.indexOf(PlayState.instance.characterGroup) - 1,
-						new FartEmitter(this.x, this.y - this.height * 0.25, !this.flipX ? -225 : -90, !this.flipX ? -90 : 45, intensity));
+						FlxG.state.members.insert(FlxG.state.members.indexOf(PlayState.instance.characterGroup) - 1,
+							new FartEmitter(this.x, this.y - this.height * 0.25, !this.flipX ? -225 : -90, !this.flipX ? -90 : 45, intensity));
+					}
 				}
 			}
 		}
