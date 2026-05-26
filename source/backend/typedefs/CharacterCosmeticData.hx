@@ -6,6 +6,7 @@ typedef CharacterCosmeticData = {
 	belchThreshold:Int,
 	gurgleThreshold:Int,
 	creakThreshold:Int,
+	fartThreshold:Int,
 	antialiasing:Bool,
 	?disablePopping:Bool,
 	?originPosition:Array<Int>,

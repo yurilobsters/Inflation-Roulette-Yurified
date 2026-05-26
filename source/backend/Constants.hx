@@ -39,7 +39,6 @@ class Constants {
 	 * 0 means the camera does not move at all.
 	 * 1 means the camera moves instantly.
 	 */
-
 	/**
 	 * The representative color of a player. First item is for Player 1, second is for Player 2, and so on.
 	 * Note that every item after the fourth one is unused.
@@ -101,4 +100,9 @@ class Constants {
 	 * How many belching sound samples to use.
 	 */
 	public static final BELCHES_SAMPLE_COUNT:Int = #if !mobile 12 #else 3 #end;
+
+	/**
+	 * How many farting sound samples to use.
+	 */
+	public static final FARTS_SAMPLE_COUNT:Int = #if !mobile 11 #else 5 #end;
 }

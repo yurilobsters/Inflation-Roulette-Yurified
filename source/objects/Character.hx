@@ -12,6 +12,8 @@ import states.PlayState;
 import tjson.TJSON as Json;
 import shaders.FlashingShader;
 import objects.particles.Swirl;
+// import objects.particleEmitters.PuffEmitter;
+import objects.particleEmitters.FartEmitter;
 
 class Character extends FlxSprite {
 	// Metadata //
@@ -22,6 +24,8 @@ class Character extends FlxSprite {
 	public var belchThreshold:Int = 3;
 	public var gurgleThreshold:Int = 2;
 	public var creakThreshold:Int = 4;
+	public var fartThreshold:Int = 3;
+
 	public var originPosition:Array<Int> = [0, 0];
 	public var poppedCameraOffset:Array<Int> = [0, 0];
 	public var cameraOffset:Array<Int> = [0, 0];
@@ -62,6 +66,7 @@ class Character extends FlxSprite {
 
 	var gurgleTimer:Float = 0;
 	var creakTimer:Float = 0;
+	var fartTimer:Float = 0;
 	var swirlSpawnTimer:Float = 0;
 
 	public function new(character:String, x:Float = 0, y:Float = 0) {
@@ -74,14 +79,17 @@ class Character extends FlxSprite {
 
 		// name = json.name;
 		/*
-		if (json.description != null)
-			description = json.description;
-		*/
+			if (json.description != null)
+				description = json.description;
+		 */
 		maxPressure = json.maxPressure;
 		maxConfidence = json.maxConfidence;
 		belchThreshold = spriteJson.belchThreshold;
 		gurgleThreshold = spriteJson.gurgleThreshold;
 		creakThreshold = spriteJson.creakThreshold;
+
+		fartThreshold = spriteJson.fartThreshold ?? 3;
+
 		if (spriteJson.originPosition != null)
 			originPosition = spriteJson.originPosition;
 		if (spriteJson.poppedCameraOffset != null)
@@ -99,15 +107,7 @@ class Character extends FlxSprite {
 					[-160, -180],
 					[-100, -460]
 				],
-				mouth: [
-					[0, -410],
-					[0, -410],
-					[0, -410],
-					[0, -420],
-					[0, -440],
-					[-100, -140],
-					[-80, -420]
-				],
+				mouth: [[0, -410], [0, -410], [0, -410], [0, -420], [0, -440], [-100, -140], [-80, -420]],
 				navel: [
 					[10, -290],
 					[40, -285],
@@ -117,24 +117,8 @@ class Character extends FlxSprite {
 					[40, -160],
 					[150, -220]
 				],
-				gunShoot: [
-					[0, -380],
-					[0, -380],
-					[0, -380],
-					[0, -420],
-					[0, -420],
-					[0, 0],
-					[0, 0]
-				],
-				gunSkill: [
-					[0, -320],
-					[0, -320],
-					[0, -360],
-					[0, -400],
-					[0, -400],
-					[0, 0],
-					[0, 0]
-				]
+				gunShoot: [[0, -380], [0, -380], [0, -380], [0, -420], [0, -420], [0, 0], [0, 0]],
+				gunSkill: [[0, -320], [0, -320], [0, -360], [0, -400], [0, -400], [0, 0], [0, 0]]
 			};
 		}
 		particleOffsets.set('over', spriteJson.particleOffsets.over);
@@ -179,7 +163,6 @@ class Character extends FlxSprite {
 		antialiasing = (!Preferences.data.enableForcedAliasing) ? !(!spriteJson.antialiasing) : false;
 
 		if (Preferences.data.enableGLSL) {
-			
 		}
 
 		animSoundPaths = new Map<String, Array<String>>();
@@ -212,8 +195,6 @@ class Character extends FlxSprite {
 			else if (animExists(animName + '-loop') && !idleAfterAnimation)
 				playAnim(animName + '-loop', false, false);
 		});
-		
-		trace(animSoundPaths);
 	}
 
 	override function update(elapsed:Float) {
@@ -242,11 +223,32 @@ class Character extends FlxSprite {
 				}
 			}
 		}
+
+		if (Preferences.data.enableFarts) {
+			if (fartThreshold > -1 && currentPressure >= fartThreshold) {
+				fartTimer -= elapsed;
+				if (fartTimer < 0) {
+					var intensity = Math.min(1, (currentPressure - fartThreshold + 1) / (maxPressure - fartThreshold + 1));
+					fartTimer = FlxG.random.float(1.0, 5.0) / intensity;
+					SuffState.playSound(Paths.soundRandom('game/belly/farts/fart', 1, Constants.FARTS_SAMPLE_COUNT), intensity * 0.65,
+						FlxG.random.float(0.7, 1.3));
+
+					FlxG.state.members.insert(FlxG.state.members.indexOf(PlayState.instance.characterGroup) - 1,
+						new FartEmitter(this.x, this.y - this.height * 0.25));
+				}
+			}
+		}
+
 		if (!canUseSkills) {
 			swirlSpawnTimer -= elapsed;
 			if (swirlSpawnTimer <= 0) {
 				var offsets = getParticleOffset('over');
-				FlxG.state.add(new Swirl(this.x + offsets.x + FlxG.random.float(-1, 1) * this.width / 5, this.y + offsets.y + FlxG.random.float() * this.height / 5, 0xFFC040FF));
+				FlxG.state.add(new Swirl(this.x
+					+ offsets.x
+					+ FlxG.random.float(-1, 1) * this.width / 5,
+					this.y
+					+ offsets.y
+					+ FlxG.random.float() * this.height / 5, 0xFFC040FF));
 				swirlSpawnTimer = FlxG.random.float();
 			}
 		}
@@ -274,10 +276,8 @@ class Character extends FlxSprite {
 	}
 
 	public function addSoundPath(name:String, pathArray:Array<String>) {
-		if (pathArray == null || pathArray.length <= 0)
+		if (!animSoundPaths.exists(name) || pathArray == null || pathArray.length <= 0)
 			return;
-		if (!animSoundPaths.exists(name))
-			animSoundPaths.set(name, []);
 		for (path in pathArray) {
 			animSoundPaths[name].push(path);
 		}
@@ -309,10 +309,10 @@ class Character extends FlxSprite {
 				SuffState.playSound(Paths.sound(daSound));
 			}
 		}
-		
+
 		// trace(id, usedAnimName);
 	}
-	
+
 	public function getParticleOffset(position:String = 'over'):FlxPoint {
 		if (!particleOffsets.exists(position))
 			return FlxPoint.get(0, 0);
@@ -357,7 +357,15 @@ class Character extends FlxSprite {
 	}
 
 	public function mouseOverlapsBoundingBox() {
-		return FlxG.mouse.x >= this.x - this.offset.x + boundingBox.x && FlxG.mouse.x <= this.x - this.offset.x + boundingBox.x + boundingBox.width && FlxG.mouse.y >= this.y - this.offset.y + boundingBox.y && FlxG.mouse.y <= this.y - this.offset.y + boundingBox.y + boundingBox.height;
+		return FlxG.mouse.x >= this.x - this.offset.x + boundingBox.x
+			&& FlxG.mouse.x <= this.x
+				- this.offset.x
+				+ boundingBox.x
+				+ boundingBox.width && FlxG.mouse.y >= this.y - this.offset.y + boundingBox.y
+			&& FlxG.mouse.y <= this.y
+				- this.offset.y
+				+ boundingBox.y
+				+ boundingBox.height;
 	}
 
 	public function isEliminated() {

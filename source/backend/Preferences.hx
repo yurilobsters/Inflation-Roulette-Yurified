@@ -27,6 +27,7 @@ class SaveVariables {
 	public var playCursorSounds:Bool = true;
 	public var enableBellyGurgles:Bool = false;
 	public var enableBellyCreaks:Bool = true;
+	public var enableFarts:Bool = false;
 	public var cacheOnGPU:Bool = true;
 	public var showDebugText:Bool = false;
 	public var showFramerateOnDebugText:Bool = true;
@@ -74,7 +75,8 @@ class Preferences {
 		FlxG.save.bind('preferences', Utilities.getSavePath());
 
 		for (key in Reflect.fields(data)) {
-			if (manuallyProcessedKeys.contains(key)) continue;
+			if (manuallyProcessedKeys.contains(key))
+				continue;
 			if (Reflect.getProperty(FlxG.save.data, key) == null)
 				Reflect.setField(FlxG.save.data, key, Reflect.field(defaultData, key));
 			else
@@ -101,7 +103,8 @@ class Preferences {
 		FlxG.save.bind('preferences', Utilities.getSavePath());
 
 		for (key in Reflect.fields(data)) {
-			if (manuallyProcessedKeys.contains(key) || !Reflect.hasField(FlxG.save.data, key)) continue;
+			if (manuallyProcessedKeys.contains(key) || !Reflect.hasField(FlxG.save.data, key))
+				continue;
 			Reflect.setField(data, key, Reflect.field(FlxG.save.data, key));
 		}
 
