@@ -140,6 +140,8 @@ class ExportingProjectPrompt extends UtilitiesBaseMenuSubState {
 			belchThreshold: Std.int(stats.maxPressure * 0.5),
 			gurgleThreshold: Std.int(stats.maxPressure * 0.5),
 			creakThreshold: Math.ceil(stats.maxPressure * 0.75),
+			fartThreshold: Std.int(stats.maxPressure * 0.5),
+
 			antialiasing: false,
 			disablePopping: false,
 			originPosition: [
