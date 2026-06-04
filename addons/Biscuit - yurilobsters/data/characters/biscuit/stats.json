@@ -1,0 +1,16 @@
+{
+	"maxConfidence": 6,
+	"modifiers": [],
+	"skills": [
+		{
+			"id": "polarize",
+			"cost": 3
+		},
+		{
+			"id": "assault",
+			"cost": 4
+		}
+	],
+	"maxPressure": 4,
+	"id": "biscuit"
+}

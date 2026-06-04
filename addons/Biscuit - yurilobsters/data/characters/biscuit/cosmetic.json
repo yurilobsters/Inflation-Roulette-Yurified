@@ -1,0 +1,528 @@
+{
+	"animations": [
+		{
+			"prefix": "idle0",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": true,
+			"name": "idle0"
+		},
+		{
+			"prefix": "idle1",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": true,
+			"name": "idle1"
+		},
+		{
+			"prefix": "idle2",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": true,
+			"name": "idle2"
+		},
+		{
+			"prefix": "idle3",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": true,
+			"name": "idle3"
+		},
+		{
+			"prefix": "idle4",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": true,
+			"name": "idle4"
+		},
+		{
+			"prefix": "idleNull",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": true,
+			"name": "idleNull"
+		},
+		{
+			"prefix": "idleOverinflated",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": true,
+			"name": "idleOverinflated"
+		},
+		{
+			"prefix": "prepareShoot0",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": true,
+			"name": "prepareShoot0"
+		},
+		{
+			"prefix": "prepareShoot1",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": true,
+			"name": "prepareShoot1"
+		},
+		{
+			"prefix": "prepareShoot2",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": true,
+			"name": "prepareShoot2"
+		},
+		{
+			"prefix": "prepareShoot3",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": true,
+			"name": "prepareShoot3"
+		},
+		{
+			"prefix": "prepareShoot4",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": true,
+			"name": "prepareShoot4"
+		},
+		{
+			"prefix": "preShoot0",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": false,
+			"name": "preShoot0"
+		},
+		{
+			"prefix": "preShoot1",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": false,
+			"name": "preShoot1"
+		},
+		{
+			"prefix": "preShoot2",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": false,
+			"name": "preShoot2"
+		},
+		{
+			"prefix": "preShoot3",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": false,
+			"name": "preShoot3"
+		},
+		{
+			"prefix": "preShoot4",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": false,
+			"name": "preShoot4"
+		},
+		{
+			"prefix": "shootBlank0",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": false,
+			"name": "shootBlank0"
+		},
+		{
+			"prefix": "shootBlank1",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": false,
+			"name": "shootBlank1"
+		},
+		{
+			"prefix": "shootBlank2",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": false,
+			"name": "shootBlank2"
+		},
+		{
+			"prefix": "shootBlank3",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": false,
+			"name": "shootBlank3"
+		},
+		{
+			"prefix": "shootBlank4",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": false,
+			"name": "shootBlank4"
+		},
+		{
+			"prefix": "shootLive0",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": false,
+			"name": "shootLive0"
+		},
+		{
+			"prefix": "shootLive1",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": false,
+			"name": "shootLive1"
+		},
+		{
+			"prefix": "shootLive2",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": false,
+			"name": "shootLive2"
+		},
+		{
+			"prefix": "shootLive3",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": false,
+			"name": "shootLive3"
+		},
+		{
+			"prefix": "shootLive4",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": false,
+			"name": "shootLive4"
+		},
+		{
+			"prefix": "pass0",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": false,
+			"name": "pass0"
+		},
+		{
+			"prefix": "pass1",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": false,
+			"name": "pass1"
+		},
+		{
+			"prefix": "pass2",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": false,
+			"name": "pass2"
+		},
+		{
+			"prefix": "pass3",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": false,
+			"name": "pass3"
+		},
+		{
+			"prefix": "pass4",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": false,
+			"name": "pass4"
+		},
+		{
+			"prefix": "skill0",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": false,
+			"name": "skill0"
+		},
+		{
+			"prefix": "skill1",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": false,
+			"name": "skill1"
+		},
+		{
+			"prefix": "skill2",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": false,
+			"name": "skill2"
+		},
+		{
+			"prefix": "skill3",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": false,
+			"name": "skill3"
+		},
+		{
+			"prefix": "skill4",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": false,
+			"name": "skill4"
+		},
+		{
+			"prefix": "shocked0",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": false,
+			"name": "shocked0"
+		},
+		{
+			"prefix": "shocked1",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": false,
+			"name": "shocked1"
+		},
+		{
+			"prefix": "shocked2",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": false,
+			"name": "shocked2"
+		},
+		{
+			"prefix": "shocked3",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": false,
+			"name": "shocked3"
+		},
+		{
+			"prefix": "shocked4",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": false,
+			"name": "shocked4"
+		},
+		{
+			"prefix": "popped",
+			"indices": [],
+			"fps": 24,
+			"soundPaths": [],
+			"loop": true,
+			"name": "popped"
+		}
+	],
+	"belchThreshold": 2,
+	"poppingGravityMultiplier": 1,
+	"spriteSheets": [
+		"0",
+		"1",
+		"2"
+	],
+	"poppingVelocityMultiplier": [
+		1,
+		1
+	],
+	"fartThreshold": 2,
+	"poppedCameraOffset": [
+		0,
+		-128
+	],
+	"cameraOffset": [
+		0,
+		-320
+	],
+	"particleOffsets": {
+		"navel": [
+			[
+				10,
+				-290
+			],
+			[
+				40,
+				-285
+			],
+			[
+				70,
+				-280
+			],
+			[
+				100,
+				-275
+			],
+			[
+				130,
+				-270
+			],
+			[
+				40,
+				-160
+			],
+			[
+				150,
+				-220
+			]
+		],
+		"mouth": [
+			[
+				0,
+				-410
+			],
+			[
+				0,
+				-410
+			],
+			[
+				0,
+				-410
+			],
+			[
+				0,
+				-420
+			],
+			[
+				0,
+				-440
+			],
+			[
+				-100,
+				-140
+			],
+			[
+				-80,
+				-420
+			]
+		],
+		"gunShoot": [
+			[
+				0,
+				-380
+			],
+			[
+				0,
+				-380
+			],
+			[
+				0,
+				-380
+			],
+			[
+				0,
+				-420
+			],
+			[
+				0,
+				-420
+			],
+			[
+				0,
+				0
+			],
+			[
+				0,
+				0
+			]
+		],
+		"gunSkill": [
+			[
+				0,
+				-320
+			],
+			[
+				0,
+				-320
+			],
+			[
+				0,
+				-360
+			],
+			[
+				0,
+				-400
+			],
+			[
+				0,
+				-400
+			],
+			[
+				0,
+				0
+			],
+			[
+				0,
+				0
+			]
+		],
+		"over": [
+			[
+				0,
+				-480
+			],
+			[
+				0,
+				-480
+			],
+			[
+				0,
+				-480
+			],
+			[
+				0,
+				-480
+			],
+			[
+				0,
+				-480
+			],
+			[
+				-160,
+				-180
+			],
+			[
+				-100,
+				-460
+			]
+		]
+	},
+	"antialiasing": false,
+	"creakThreshold": 3,
+	"disablePopping": false,
+	"originPosition": [
+		320,
+		576
+	],
+	"gurgleThreshold": 2
+}
