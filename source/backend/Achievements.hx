@@ -22,23 +22,55 @@ class Achievements {
 	}
 
 	public static function initialize() {
+		achievementsList = [];
+		achievementIDs = [];
+		// Experiences
 		createAchievement('firstWin', {tier: COMMON, type: BOOLEAN});
+		createAchievement('pressurizeYourself', {tier: LAME, type: BOOLEAN});
+		createAchievement('exportCharacterProject', {
+			tier: GOOD,
+			type: BOOLEAN
+		});
+		createAchievement('winByYourself', {
+			tier: LAME,
+			type: BOOLEAN,
+			alwaysAchievable: true
+		});
+		// Challenges
+		createAchievement('doublePressurize', {tier: GOOD, type: BOOLEAN});
+		createAchievement('noPressureWin', {tier: GOOD, type: BOOLEAN});
+
+		createAchievement('fullPressureWin', {tier: COMMON, type: BOOLEAN});
+		createAchievement('maximumScore', {tier: EPIC, type: BOOLEAN});
+		createAchievement('minimumScore', {tier: LAME, type: BOOLEAN});
+		createAchievement('winAgainstStrategicCPUs', {
+			tier: GOOD,
+			type: BOOLEAN
+		});
+
+		createAchievement('rarePolarizeSuccess', {
+			tier: GOOD,
+			type: BOOLEAN
+		});
+		createAchievement('eliminateByAssault', {
+			tier: COMMON,
+			type: BOOLEAN
+		});
+		createAchievement('intentionalLoseByPolarize', {
+			tier: EPIC,
+			type: BOOLEAN
+		});
+		// Milestones
 		createAchievement('sabotages', {
 			tier: COMMON,
 			type: NUMBER,
 			target: 50
 		});
-		createAchievement('doublePressurize', {tier: GOOD, type: BOOLEAN});
-		createAchievement('pressurizeYourself', {tier: LAME, type: BOOLEAN});
-		createAchievement('noPressureWin', {tier: GOOD, type: BOOLEAN});
-		createAchievement('fullPressureWin', {tier: COMMON, type: BOOLEAN});
-		createAchievement('maximumScore', {tier: EPIC, type: BOOLEAN});
-		createAchievement('minimumScore', {tier: LAME, type: BOOLEAN});
-		createAchievement('allGameModeWins', {
-			tier: GOOD,
-			type: LIST,
-			items: ['reloaded', 'inequality', 'classic', '1v1', 'sixPlayers', 'charge', 'fiftyFifty'],
-			itemTranslationKey: 'gamemode.%.name'
+
+		createAchievement('liveShots', {
+			tier: COMMON,
+			type: NUMBER,
+			target: 100
 		});
 		createAchievement('allCharacterWins', {
 			tier: GOOD,
@@ -46,11 +78,11 @@ class Achievements {
 			items: ['goober', 'asimo', 'chester', 'shibanou'],
 			itemTranslationKey: 'character.%.name.short'
 		});
-		createAchievement('noLife', {
-			tier: LAME,
-			type: BOOLEAN,
-			hideFromMenu: true,
-			resettable: false
+		createAchievement('allGameModeWins', {
+			tier: GOOD,
+			type: LIST,
+			items: ['reloaded', 'inequality', 'classic', 'charge', 'fiftyFifty'],
+			itemTranslationKey: 'gamemode.%.name'
 		});
 		#if (_ALLOW_EASTER_EGGS && !mobile)
 		createAchievement('allEasterEggs', {
@@ -65,6 +97,26 @@ class Achievements {
 			hideItems: true
 		});
 		#end
+
+		// Hidden
+		createAchievement('findCameraman', {
+			tier: COMMON,
+			type: BOOLEAN,
+			hideFromMenu: true,
+			silent: true
+		});
+		createAchievement('nineTwentyOne', {
+			tier: LAME,
+			type: BOOLEAN,
+			hideFromMenu: true,
+			silent: true
+		});
+		createAchievement('noLife', {
+			tier: LAME,
+			type: BOOLEAN,
+			hideFromMenu: true,
+			resettable: false
+		});
 
 		for (id => data in achievementsList) {
 			switch (data.type) {
@@ -106,7 +158,8 @@ class Achievements {
 	}
 
 	public static function advanceProgress(id:String, progress:Array<Dynamic>) {
-		if (!enabled) return;
+		if (!enabled && Achievements.achievementsList[id]?.alwaysAchievable != true)
+			return;
 		var prevLocked:Bool = isLocked(id);
 		switch (Achievements.achievementsList[id].type) {
 			case BOOLEAN:
@@ -121,7 +174,7 @@ class Achievements {
 				}
 		}
 		var curLocked:Bool = isLocked(id);
-		if (prevLocked != curLocked && !curLocked && prevLocked) {
+		if (prevLocked != curLocked && !curLocked && prevLocked && Achievements.achievementsList[id].silent != true) {
 			AchievementToast.enqueue(id);
 		}
 		FlxG.save.data.achievements = curProgress;

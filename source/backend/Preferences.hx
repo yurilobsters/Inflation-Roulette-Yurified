@@ -36,9 +36,21 @@ class SaveVariables {
 	public var checkForUpdates:Bool = true;
 	public var enableGLSL:Bool = true;
 	public var decreaseDetail:Bool = false;
-	public var language:String = 'en-us';
+	public var language:String = 'en-US';
 
-	public var keybinds:Map<String, Array<FlxKey>> = [
+	public function new() {
+	}
+}
+
+/**
+ * Handles the player's game settings.
+ */
+class Preferences {
+	public static var data:SaveVariables = null;
+	public static var defaultData:SaveVariables = null;
+
+	public static var keybinds:Map<String, Array<FlxKey>> = [];
+	public static var defaultKeybinds:Map<String, Array<FlxKey>> = [
 		'shoot' => [ENTER, Z],
 		'exit' => [ESCAPE, X],
 		'camera' => [BACKSLASH, C],
@@ -58,37 +70,27 @@ class SaveVariables {
 		'debug5' => [N, FlxKey.NONE]
 	];
 
-	public function new() {
-	}
-}
-
-/**
- * Handles the player's game settings.
- */
-class Preferences {
-	public static var data:SaveVariables = null;
-	public static var defaultData:SaveVariables = null;
-
 	public static final manuallyProcessedKeys = ['keybinds'];
 
 	public static function savePrefs() {
-		FlxG.save.bind('preferences', Utilities.getSavePath());
-
+		var save:FlxSave = new FlxSave();
+		save.bind('preferences', Utilities.getSavePath());
+		save.mergeData(defaultData, true);
 		for (key in Reflect.fields(data)) {
-			if (manuallyProcessedKeys.contains(key))
-				continue;
+			if (manuallyProcessedKeys.contains(key)) continue;
 			if (Reflect.getProperty(FlxG.save.data, key) == null)
 				Reflect.setField(FlxG.save.data, key, Reflect.field(defaultData, key));
 			else
-				Reflect.setField(FlxG.save.data, key, Reflect.field(data, key));
+				Reflect.setField(save.data, key, Reflect.field(data, key));
 		}
+		save.flush();
 
-		FlxG.save.bind('controls', Utilities.getSavePath());
-		FlxG.save.data.keybinds = data.keybinds;
+		var save:FlxSave = new FlxSave();
+		save.bind('controls', Utilities.getSavePath());
+		save.data.keybinds = keybinds;
+		save.flush();
 
-		// trace("Preferences saved!");
-		FlxG.save.flush();
-		FlxG.save.bind('game', Utilities.getSavePath());
+		trace("Preferences saved!");
 	}
 
 	/**
@@ -103,23 +105,23 @@ class Preferences {
 		FlxG.save.bind('preferences', Utilities.getSavePath());
 
 		for (key in Reflect.fields(data)) {
-			if (manuallyProcessedKeys.contains(key) || !Reflect.hasField(FlxG.save.data, key))
-				continue;
+			if (manuallyProcessedKeys.contains(key) || !Reflect.hasField(FlxG.save.data, key)) continue;
 			Reflect.setField(data, key, Reflect.field(FlxG.save.data, key));
 		}
 
-		FlxG.save.bind('controls', Utilities.getSavePath());
-		if (FlxG.save.data.keybinds != null) {
-			var savedMap:Map<String, Array<FlxKey>> = FlxG.save.data.keybinds;
-			for (name => value in savedMap)
-				data.keybinds.set(name, value);
+		var save:FlxSave = new FlxSave();
+		save.bind('controls', Utilities.getSavePath());
+		if (save?.data?.keybinds != null) {
+			var saveKeybinds:Map<String, Array<FlxKey>> = save.data.keybinds;
+			for (name => value in saveKeybinds)
+				keybinds.set(name, value);
 		} else {
-			FlxG.save.data.keybinds = new Map<String, Array<FlxKey>>();
+			save.data.keybinds = defaultKeybinds;
+			for (name => value in defaultKeybinds)
+				keybinds.set(name, value);
 		}
 		Controls.reloadKeybinds();
 		ScreenSafeZone.recalculateConstants();
-
-		FlxG.save.bind('game', Utilities.getSavePath());
 
 		if (Main.debugText != null) {
 			Main.debugText.updateText();

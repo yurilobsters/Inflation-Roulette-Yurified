@@ -228,7 +228,7 @@ class OptionsSubState extends SuffSubState {
 		}, Preferences.data.maxFramerate);
 		// Mobile framerate is capped at 120 to avoid device heating up
 
-		#if !html5
+		#if _CHECK_FOR_UPDATES
 		createBooleanOption('checkForUpdates', function(value:Bool) {
 			Preferences.data.checkForUpdates = value;
 		}, Preferences.data.checkForUpdates);
@@ -323,7 +323,7 @@ class OptionsSubState extends SuffSubState {
 		optionsGroup.add(text);
 
 		var option:SuffSliderOption = new SuffSliderOption(text.x + text.width + 16, optionsY, callback, rangeMin, rangeMax, step, displayFunction,
-			defaultValue);
+		defaultValue);
 		text.y = option.y + (option.height - text.height) / 2;
 		option.camera = this.camera;
 		option.tooltipText = Language.getPhrase('option.${ID}.description');

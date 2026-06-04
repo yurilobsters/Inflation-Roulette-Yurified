@@ -5,19 +5,32 @@ This project adheres to this versioning: `MAJOR.MINOR.HOTFIX`.
 
 Minor updates will be referred to as _Pitstops_.
 
-## v2.2.0 - Patch of Creativity, Pitstop 2 - 2026-05-21
+## v3.0.0 - A Lil' Something Portable - 2026-05-21
 ### Additions
+#### Gameplay
+- New achievements:
+  - Not Enough Air
+  - Reverse Russian Roulette
+  - Quick Draw
+  - Lovesick
+  - ??????, ??????, ??????!
+  - True Singleplayer
+  - Mind Games
+  - ? ?????? ???? ?? ???????
+  - Utilizer
+- Player count slider in Gamemode Select Screen.
 #### Cosmetic
 - A bunch of visual effects.
 #### Localization
-- Added Catalan and Spanish (Mexico) translations.
+- Catalan and Spanish (Mexico) translations.
 #### Quality of Life
 - Exit button in Character Select
 #### Technical
-- Android build (beta version, does not support modding yet).
+- Android build.
+- Warning screen (re-added due to bug)
 - Version checking to alert you on the latest version of IRR. 
   - This can be disabled in the Options menu
-  - Only supports versions >=2.2.0
+  - Only supports versions >=3.0.0
 - Operations are now output on console on the Preload menu.
 ### Changes
 #### Audio
@@ -31,13 +44,23 @@ Minor updates will be referred to as _Pitstops_.
 - Recolored Goober's blush to match other characters'
 - Decreased Asimo's gurgle threshold
 - Increased visibility of Skill icons on white backgrounds
+- Updated some splashes
+#### Localization
+- Forced Aliasing now renamed to _Forced Pixelation_ to avoid confusion.
 #### Gameplay
-- Quick Play now randomizes player position.
+- Quick Play now randomizes the human player's position.
+- Player count is now unaffected by game mode.
 #### Technical
 - All changelogs are now kept in one file.
 - Skill Cards now only uses one file
+- VRAM Caching is now off by default.
 #### Utilities
 - Character Editor now generates addon metadata and localization files for you.
+### Removals
+#### Gameplay
+- Removed Modifiers
+  - Since this feature is under-utilized and not expanded upon, modifiers no longer have any effect.
+- Removed Stand-Off and Mayhem
 ### Fixes
 - Scroll bars, Gallery Image View, Credits menu, and Options sliders snaps elements in place on touchscreens.
 - Blurry Cobalt crashes the game.

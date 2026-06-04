@@ -1,4 +1,4 @@
-ru-ru
-zh-hk
-ca-ad
-es-mx
+zh-HK
+ru-RU
+ca-ES
+es-MX

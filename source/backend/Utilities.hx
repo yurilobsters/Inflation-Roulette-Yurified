@@ -24,7 +24,7 @@ class Utilities {
 			daList = File.getContent(lePath);
 		#if _ALLOW_ADDONS
 		if (addons) {
-			for (addon in Addons.getGlobalAddons()) {
+			for (addon in Addons.globalAddons) {
 				var lePath = Paths.addons(addon + '/' + path);
 				if (FileSystem.exists(lePath))
 					daList = daList + '\n' + File.getContent(lePath);
@@ -141,7 +141,7 @@ class Utilities {
 	 */
 	inline public static function getSavePath():String {
 		@:privateAccess
-		return FlxG.stage.application.meta.get('company') + '/' + FlxG.stage.application.meta.get('file');
+		return FlxG.stage.application.meta.get('company') + '/' + FlxSave.validate(FlxG.stage.application.meta.get('file'));
 	}
 
 	inline public static function getActualGameTitle():String {
