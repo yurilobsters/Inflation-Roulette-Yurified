@@ -22,6 +22,7 @@ class Filler {
 	public var creaks:FillerSoundData;
 	public var belches:FillerSoundData;
 	public var leaks:FillerSoundData;
+	public var farts:FillerSoundData;
 	public var bursts:FillerSoundData;
 
 	public var gravityMultiplier:Float = 1;
@@ -75,6 +76,10 @@ class Filler {
 			this.bursts = cast rawData.bursts;
 			this.bursts.samples = determineSamples(this.bursts.samples);
 		}
+		if (rawData.farts != null) {
+			this.farts = cast rawData.farts;
+			this.farts.samples = determineSamples(this.farts.samples);
+		}
 
 		if (rawData.gravityMultiplier != null)
 			this.gravityMultiplier = rawData.gravityMultiplier;
@@ -111,6 +116,10 @@ class Filler {
 
 	public function getBurstSound() {
 		return Paths.soundRandom('game/inflation/${bursts.archetype}/bursts/burst', 1, bursts.samples) ?? Paths.sound('game/inflation/gas/bursts/burst_1');
+	}
+
+	public function getFartSound() {
+		return Paths.soundRandom('game/inflation/${farts.archetype}/farts/fart', 1, farts.samples);
 	}
 
 	public function toString():String {
