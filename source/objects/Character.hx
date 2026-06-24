@@ -108,7 +108,7 @@ class Character extends FlxSprite {
 			cameraOffset = spriteJson.cameraOffset;
 		if (spriteJson.particleOffsets == null) {
 			spriteJson.particleOffsets = {
-				over: [
+				overhead: [
 					[0, -480],
 					[0, -480],
 					[0, -480],
