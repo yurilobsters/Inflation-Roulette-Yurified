@@ -1,13 +1,11 @@
 package substates;
 
-import ui.objects.SuffBooleanOption;
+import ui.objects.SuffBoolean;
 import ui.objects.SuffIconButton;
-import ui.objects.SuffSliderOption;
+import ui.objects.SuffSlider;
 import states.PlayState;
 import ui.objects.SuffScrollBar;
-#if mobile
-import substates.ScreenSafeZoneSubState;
-#end
+import substates.ScreenSafeAreaSubState;
 
 class OptionsSubState extends SuffSubState {
 	public static var notInGame:Bool = true;
@@ -33,6 +31,8 @@ class OptionsSubState extends SuffSubState {
 	public function new() {
 		super();
 
+		Window.setTitle(Language.getPhrase('optionsMenu.windowDisplay'));
+
 		bg = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
 		bg.alpha = 0.75;
 		add(bg);
@@ -48,17 +48,18 @@ class OptionsSubState extends SuffSubState {
 		optionsGroup.camera = FlxG.cameras.list[FlxG.cameras.list.length - 1];
 		generateOptions();
 
-		bg2.makeGraphic(Std.int(optionsXPadding + optionsMaxWidth + optionsXPadding), FlxG.height, FlxColor.BLACK);
-		bg2.alpha = 0.375;
-
-		scrollBar = new SuffScrollBar(bg2.width, 0, function(percent:Float) {
+		scrollBar = new SuffScrollBar(0, 0, function(percent:Float) {
 			optionsGroup.y = FlxMath.lerp(0, FlxG.height - (optionsGroup.height + 64), percent);
 		}, 32, optionsGroup.height + 64);
+		bg2.makeGraphic(Std.int(Math.min(FlxG.width - scrollBar.width - ScreenSafeArea.X, optionsXPadding + optionsMaxWidth + optionsXPadding)), FlxG.height, FlxColor.BLACK);
+		bg2.alpha = 0.375;
+
+		scrollBar.x = bg2.width;
 		scrollBar.camera = this.camera;
 		add(scrollBar);
 
-		exitButton = new SuffIconButton(20, 20 + ScreenSafeZone.Y, 'buttons/exit', null, 2);
-		exitButton.x = FlxG.width - exitButton.width - 20 - ScreenSafeZone.X;
+		exitButton = new SuffIconButton(20, 20 + ScreenSafeArea.Y, 'buttons/exit', null, 2);
+		exitButton.x = FlxG.width - exitButton.width - 20 - ScreenSafeArea.X;
 		exitButton.onClick = function() {
 			exitOptionsMenu();
 		};
@@ -68,8 +69,8 @@ class OptionsSubState extends SuffSubState {
 	}
 
 	function generateOptions() {
-		optionsXPadding = 32 + ScreenSafeZone.X;
-		optionsY = optionsYPadding + ScreenSafeZone.Y;
+		optionsXPadding = 32 + ScreenSafeArea.X;
+		optionsY = optionsYPadding + ScreenSafeArea.Y;
 		optionsScrollUpperLimit = optionsY;
 		optionsScrollLowerLimit = optionsY;
 
@@ -83,25 +84,37 @@ class OptionsSubState extends SuffSubState {
 		});
 		#end
 
-		createBooleanOption("ignoreEliminatedPlayers",
-			function(value:Bool) {
-				Preferences.data.ignoreEliminatedPlayers = value;
-			}, Preferences.data.ignoreEliminatedPlayers);
+		createBooleanOption("skipEliminatedPlayers",
+		function(value:Bool) {
+			Preferences.data.skipEliminatedPlayers = value;
+		}, Preferences.data.skipEliminatedPlayers);
 
 		createHeading('preferences');
+
+		createBooleanOption("enableBellyCreaks", function(value:Bool) {
+			Preferences.data.enableBellyCreaks = value;
+		}, Preferences.data.enableBellyCreaks);
+
+		createBooleanOption("enableBellyGurgles", function(value:Bool) {
+			Preferences.data.enableBellyGurgles = value;
+		}, Preferences.data.enableBellyGurgles);
+
+		createBooleanOption("enableBelching", function(value:Bool) {
+			Preferences.data.enableBelching = value;
+		}, Preferences.data.enableBelching);
 
 		createBooleanOption('enablePopping',
 			function(value:Bool) {
 				Preferences.data.enablePopping = value;
 			}, Preferences.data.enablePopping);
 
-		createBooleanOption("enableBellyGurgles", function(value:Bool) {
-			Preferences.data.enableBellyGurgles = value;
-		}, Preferences.data.enableBellyGurgles);
+		createBooleanOption("enableDiscoloration", function(value:Bool) {
+			Preferences.data.enableDiscoloration = value;
+		}, Preferences.data.enableDiscoloration);
 
-		createBooleanOption("enableBellyCreaks", function(value:Bool) {
-			Preferences.data.enableBellyCreaks = value;
-		}, Preferences.data.enableBellyCreaks);
+		createBooleanOption("enableOralLeaking", function(value:Bool) {
+			Preferences.data.enableOralLeaking = value;
+		}, Preferences.data.enableOralLeaking);
 
 		createBooleanOption("enableFarts", function(value:Bool) {
 			Preferences.data.enableFarts = value;
@@ -109,10 +122,37 @@ class OptionsSubState extends SuffSubState {
 
 		// GRAPHICS SETTINGS
 		createHeading('visuals');
+		createBooleanOption("enableNavelLeaking", function(value:Bool) {
+			Preferences.data.enableNavelLeaking = value;
+		}, Preferences.data.enableNavelLeaking);
+
+		createHeading('performance');
 
 		createBooleanOption('decreaseDetail', function(value:Bool) {
 			Preferences.data.decreaseDetail = value;
 		}, Preferences.data.decreaseDetail);
+
+		createBooleanOption('decreaseSounds', function(value:Bool) {
+			Preferences.data.decreaseSounds = value;
+		}, Preferences.data.decreaseSounds);
+
+		createBooleanOption('enableForcedAliasing', function(value:Bool) {
+			Preferences.data.enableForcedAliasing = value;
+		}, Preferences.data.enableForcedAliasing);
+
+		createBooleanOption('enableGLSL', function(value:Bool) {
+			Preferences.data.enableGLSL = value;
+		}, Preferences.data.enableGLSL);
+
+		#if (openfl && !html5)
+		createBooleanOption("cacheOnGPU",
+		function(value:Bool) {
+			Preferences.data.cacheOnGPU = value;
+		}, Preferences.data.cacheOnGPU);
+		#end
+
+		// GRAPHICS SETTINGS
+		createHeading('visuals');
 
 		createBooleanOption('hideHUD', function(value:Bool) {
 			Preferences.data.hideHUD = value;
@@ -122,27 +162,17 @@ class OptionsSubState extends SuffSubState {
 			Preferences.data.hideTooltip = value;
 		}, Preferences.data.hideTooltip);
 
-		#if mobile
 		if (notInGame) {
-			createButtonOption('screenSafeZone', function() {
-				openSubState(new ScreenSafeZoneSubState());
+			createButtonOption('screenSafeArea', function() {
+				openSubState(new ScreenSafeAreaSubState());
 			});
 		}
-		#end
 
 		#if desktop
 		createBooleanOption('enableFullscreen', function(value:Bool) {
 			Preferences.data.enableFullscreen = value;
 		}, Preferences.data.enableFullscreen);
 		#end
-
-		createBooleanOption('enableForcedAliasing', function(value:Bool) {
-			Preferences.data.enableForcedAliasing = value;
-		}, Preferences.data.enableForcedAliasing);
-
-		createBooleanOption('enableGLSL', function(value:Bool) {
-			Preferences.data.enableGLSL = value;
-		}, Preferences.data.enableGLSL);
 
 		createBooleanOption('alwaysPlayMainMenuAnims', function(value:Bool) {
 			Preferences.data.alwaysPlayMainMenuAnims = value;
@@ -167,21 +197,21 @@ class OptionsSubState extends SuffSubState {
 				FlxG.sound.music.volume = Preferences.data.musicVolume;
 		}, 0.0, 1.0, 0.05, function(value:Float) {
 			return Math.round(value * 100) + '%';
-		}, Preferences.data.musicVolume);
+		}, Preferences.data.musicVolume, LOGARITHMIC);
 
 		createSliderOption('gameSoundVolume', function(value:Float) {
 			Preferences.data.gameSoundVolume = value;
 			SuffState.playSound(Paths.soundRandom('game/weapon', 1, 3));
 		}, 0.0, 1.0, 0.05, function(value:Float) {
 			return Math.round(value * 100) + '%';
-		}, Preferences.data.gameSoundVolume);
+		}, Preferences.data.gameSoundVolume, LOGARITHMIC);
 
 		createSliderOption('uiSoundVolume', function(value:Float) {
 			Preferences.data.uiSoundVolume = value;
-			SuffState.playUISound(Paths.soundRandom('game/weapon', 1, 3));
+			SuffState.playUISound(Paths.sound('ui/dong'));
 		}, 0.0, 1.0, 0.05, function(value:Float) {
 			return Math.round(value * 100) + '%';
-		}, Preferences.data.uiSoundVolume);
+		}, Preferences.data.uiSoundVolume, LOGARITHMIC);
 
 		createHeading('accessibility');
 
@@ -238,13 +268,6 @@ class OptionsSubState extends SuffSubState {
 		createBooleanOption('pauseOnUnfocus', function(value:Bool) {
 			Preferences.data.pauseOnUnfocus = value;
 		}, Preferences.data.pauseOnUnfocus);
-		#end
-
-		#if (openfl && !html5)
-		createBooleanOption("cacheOnGPU",
-			function(value:Bool) {
-				Preferences.data.cacheOnGPU = value;
-			}, Preferences.data.cacheOnGPU);
 		#end
 
 		#if !mobile
@@ -305,7 +328,7 @@ class OptionsSubState extends SuffSubState {
 		text.setFormat(Paths.font('default'), 48, FlxColor.WHITE, CENTER);
 		optionsGroup.add(text);
 
-		var option:SuffBooleanOption = new SuffBooleanOption(text.x + text.width + 16, optionsY, callback, defaultValue);
+		var option:SuffBoolean = new SuffBoolean(text.x + text.width + 16, optionsY, callback, defaultValue);
 		text.y = option.y + (option.height - text.height) / 2;
 		option.camera = this.camera;
 		option.tooltipText = Language.getPhrase('option.${ID}.description');
@@ -317,13 +340,13 @@ class OptionsSubState extends SuffSubState {
 		}
 	}
 
-	function createSliderOption(ID:String, callback:Float->Void, rangeMin:Float, rangeMax:Float, step:Float, displayFunction:Float->String, defaultValue:Float) {
+	function createSliderOption(ID:String, callback:Float->Void, rangeMin:Float, rangeMax:Float, step:Float, displayFunction:Float->String, defaultValue:Float, scaling:SuffSliderScaling = LINEAR) {
 		var text:FlxText = new FlxText(optionsXPadding, optionsY, 0, Language.getPhrase('option.${ID}.name'));
 		text.setFormat(Paths.font('default'), 48, FlxColor.WHITE, CENTER);
 		optionsGroup.add(text);
 
-		var option:SuffSliderOption = new SuffSliderOption(text.x + text.width + 16, optionsY, callback, rangeMin, rangeMax, step, displayFunction,
-		defaultValue);
+		var option:SuffSlider = new SuffSlider(text.x + text.width + 16, optionsY, callback, rangeMin, rangeMax, step, displayFunction,
+		defaultValue, scaling);
 		text.y = option.y + (option.height - text.height) / 2;
 		option.camera = this.camera;
 		option.tooltipText = Language.getPhrase('option.${ID}.description');
@@ -354,6 +377,7 @@ class OptionsSubState extends SuffSubState {
 			PauseSubState.resetMusic = true;
 		}
 		Tooltip.text = '';
+		Window.setTitle(Language.getPhrase('mainMenu.windowDisplay'));
 		close();
 		if (notInGame) {
 			SuffState.playMusic('mainMenu');
@@ -373,13 +397,13 @@ class OptionsSubState extends SuffSubState {
 
 		allowMouseScrolling = true;
 		for (opt in optionsGroup) {
-			if (Std.isOfType(opt, SuffBooleanOption)) {
-				var option:SuffBooleanOption = cast opt;
+			if (Std.isOfType(opt, SuffBoolean)) {
+				var option:SuffBoolean = cast opt;
 				if (option.hovered) {
 					allowMouseScrolling = false;
 				}
-			} else if (Std.isOfType(opt, SuffSliderOption)) {
-				var option:SuffSliderOption = cast opt;
+			} else if (Std.isOfType(opt, SuffSlider)) {
+				var option:SuffSlider = cast opt;
 				if (option.pressed) {
 					allowMouseScrolling = false;
 				}

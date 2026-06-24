@@ -1,4 +1,5 @@
-game
+mainMenu
+stages/default
 characterSelect
 options
 credits
@@ -6,3 +7,7 @@ pauseHD
 language
 achievements
 resultsLoop
+addons
+stages/classic
+stages/void
+stages/shitfucks

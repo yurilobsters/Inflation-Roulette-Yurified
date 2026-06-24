@@ -4,11 +4,13 @@ import backend.typedefs.CharacterData;
 import backend.typedefs.CharacterCosmeticData;
 import flixel.graphics.frames.FlxAtlasFrames;
 import tjson.TJSON as Json;
+import backend.Gameplay;
+import backend.typedefs.CharacterOffsetsData;
 
 class CharacterSimple extends FlxSprite {
 	// Metadata //
 	public var id:String = 'unnamed';
-	public var originPosition:Array<Int> = [0, 0];
+	public var originPosition:Array<Float> = [0, 0];
 
 	public var animSoundPaths:Map<String, Array<String>>;
 
@@ -31,11 +33,9 @@ class CharacterSimple extends FlxSprite {
 		super(x, y);
 
 		this.id = character;
-		var rawJson = Paths.getTextFromFile('data/characters/' + id + '/stats.json');
-		var json:CharacterData = cast Json.parse(rawJson);
-
-		var rawJson2 = Paths.getTextFromFile('data/characters/' + id + '/cosmetic.json');
-		var spriteJson:CharacterCosmeticData = cast Json.parse(rawJson2);
+		var json:CharacterData = cast Json.parse(Paths.getTextFromFile('data/characters/' + id + '/stats.json'));
+		var spriteJson:CharacterCosmeticData = cast Json.parse(Paths.getTextFromFile('data/characters/' + id + '/cosmetic.json'));
+		var offsetsJson:CharacterOffsetsData = cast Json.parse(Paths.getTextFromFile('data/characters/' + id + '/offsets.json'));
 
 		// name = json.name;
 		/*
@@ -43,8 +43,8 @@ class CharacterSimple extends FlxSprite {
 			description = json.description;
 		*/
 		maxPressure = json.maxPressure;
-		if (spriteJson.originPosition != null)
-			originPosition = spriteJson.originPosition;
+		if (offsetsJson.originPosition != null)
+			originPosition = offsetsJson.originPosition;
 		gurgleThreshold = spriteJson.gurgleThreshold;
 		creakThreshold = spriteJson.creakThreshold;
 
@@ -90,7 +90,7 @@ class CharacterSimple extends FlxSprite {
 					if (gurgleTimer < 0) {
 						var intensity = Math.min(1, (currentPressure - gurgleThreshold + 1) / (maxPressure - gurgleThreshold + 1));
 						gurgleTimer = FlxG.random.float(1.0, 5.0) / intensity;
-						SuffState.playSound(Paths.soundRandom('game/belly/gurgles/gurgle', 1, Constants.GURGLES_SAMPLE_COUNT), intensity * 0.65,
+						SuffState.playSound(Gameplay.currentFiller.getGurgleSound(), intensity * 0.65,
 							FlxG.random.float(0.5, 2.0));
 					}
 				}
@@ -101,7 +101,7 @@ class CharacterSimple extends FlxSprite {
 					if (creakTimer < 0) {
 						var intensity = Math.min(1, (currentPressure - creakThreshold + 1) / (maxPressure - creakThreshold + 1));
 						creakTimer = FlxG.random.float(1.0, 5.0) / intensity;
-						SuffState.playSound(Paths.soundRandom('game/belly/creaks/creak', 1, Constants.CREAKS_SAMPLE_COUNT), intensity * 0.65,
+						SuffState.playSound(Gameplay.currentFiller.getCreakSound(), intensity * 0.65,
 							FlxG.random.float(0.5, 1.0));
 					}
 				}

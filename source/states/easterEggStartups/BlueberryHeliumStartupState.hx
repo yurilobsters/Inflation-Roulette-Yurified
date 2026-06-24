@@ -7,6 +7,8 @@ class BlueberryHeliumStartupState extends SuffState {
 	override function create() {
 		super.create();
 
+		Window.setTitle('我要食魚翅');
+
 		startIntro();
 	}
 
@@ -28,14 +30,14 @@ class BlueberryHeliumStartupState extends SuffState {
 		" - src/backend/SplashManager.cpp",
 		" - src/states/CharacterSelectState.cpp",
 		" - src/lime/utils/AssetCache.cpp  [haxe,release]",
-		" - src/ui/objects/SuffBooleanOption.cpp",
+		" - src/ui/objects/SuffBoolean.cpp",
 		" - src/objects/Skill.cpp",
 		" - src/ui/objects/GameIcon.cpp",
 		" - src/states/easterEggStartups/ImHighOnCrackStartupState.cpp",
 		" - src/ui/objects/AddonMenuItem.cpp",
 		" - src/states/StartupState.cpp",
 		" - src/states/easterEggStartups/BlueberryHeliumStartupState.cpp",
-		" - src/ui/objects/CharacterSelectBanner.cpp",
+		" - src/ui/objects/CharacterBanner.cpp",
 		" - src/ui/objects/SuffBox.cpp",
 		" - src/states/InitStartupState.cpp",
 		" - src/backend/Addons.cpp",
@@ -51,14 +53,14 @@ class BlueberryHeliumStartupState extends SuffState {
 		" - src/objects/particles/ScrapEmitter.cpp",
 		" - src/backend/Paths.cpp",
 		" - src/ui/SuffState.cpp",
-		" - src/ui/objects/CharacterSelectCard.cpp",
+		" - src/ui/objects/CharacterCard.cpp",
 		" - src/states/PlayState.cpp",
 		" - src/ui/objects/ReadySign.cpp",
 		" - src/backend/Gamemode.cpp",
 		" - src/ui/objects/SuffIconButton.cpp",
 		" - src/ui/objects/SuffTransitionBlock.cpp",
 		" - src/states/AddonsMenuState.cpp",
-		" - src/backend/CharacterManager.cpp",
+		" - src/backend/Gameplay.cpp",
 		" - src/substates/GamemodeSelectSubState.cpp",
 		" - src/ui/objects/CreditsSketch.cpp",
 		" - src/ui/objects/SuffButton.cpp",
@@ -66,7 +68,7 @@ class BlueberryHeliumStartupState extends SuffState {
 		" - src/openfl/display/FPS.cpp  [haxe,release]",
 		" - src/ui/objects/AddonMenuBGTile.cpp",
 		" - src/ui/objects/CharacterSelectText.cpp",
-		" - src/ui/objects/SuffSliderOption.cpp",
+		" - src/ui/objects/SuffSlider.cpp",
 		"Link: ApplicationMain.exe",
 		"    Creating library ApplicationMain.lib and object ApplicationMain.exp"
 	];
@@ -87,7 +89,7 @@ class BlueberryHeliumStartupState extends SuffState {
 		add(bg);
 
 		add(terminal);
-		addTextToTerminal('D:\\CODING\\Inflation-Roulette>');
+		addTextToTerminal('D:\\CODING\\Inflation-Roulette-Reloaded>');
 		addTextToTerminal('');
 
 		add(scanlines);

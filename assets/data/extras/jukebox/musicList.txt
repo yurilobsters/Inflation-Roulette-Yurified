@@ -1,6 +1,6 @@
 mainMenu
 cutscene
-game
+stages/default
 characterSelect
 characterSelectEnd
 win
@@ -12,3 +12,8 @@ language
 achievements
 resultsStart
 resultsLoop
+addons
+stages/classic
+stages/shitfucks
+stages/void
+stages/classicAlt

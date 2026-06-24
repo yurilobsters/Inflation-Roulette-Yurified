@@ -2,10 +2,7 @@ package states;
 
 import backend.SplashManager;
 import backend.lunarDate.LunarDate;
-import backend.PlatformMetadata;
-#if _OFFICIAL_BUILD
-import backend.VersionMetadata;
-#end
+import backend.VersionUtil;
 import flixel.addons.display.FlxBackdrop;
 import flixel.addons.display.FlxGridOverlay;
 import states.AchievementsState;
@@ -22,10 +19,8 @@ import substates.OptionsSubState;
 import substates.ExtrasSubState;
 import substates.GamemodeSelectSubState;
 import ui.objects.GameLogo;
-import backend.Scoring.Scoring.gradePercent;
-import backend.typedefs.ScoreData;
-import backend.enums.ScoreRank;
-import backend.Scoring;
+import states.debug.DiscolorationTestState;
+import states.debug.LiquidTestState;
 
 class MainMenuState extends SuffState {
 	public static var initialized:Bool = false;
@@ -50,6 +45,7 @@ class MainMenuState extends SuffState {
 
 	final menuItemPadding:FlxPoint = new FlxPoint(10, 10);
 	final menuItemSize:FlxPoint = new FlxPoint(520, 550);
+	// Y value is unused
 
 	var creditsButton:SuffButton;
 
@@ -70,6 +66,8 @@ class MainMenuState extends SuffState {
 	override public function create():Void {
 		Paths.clearUnusedMemory();
 
+		Window.setTitle(Language.getPhrase('mainMenu.windowDisplay'));
+
 		if (FlxG.sound.music == null || SuffState.currentMusicName == 'null') { // idk lmao
 			SuffState.playMusic('mainMenu');
 		}
@@ -88,10 +86,10 @@ class MainMenuState extends SuffState {
 		overlay.alpha = 0.75;
 		add(overlay);
 
-		logo = new GameLogo(0, 0, false);
-		logo.showVersion = true;
-		logo.x = FlxG.width / 2 + (FlxG.width / 2 - logo.width) / 2;
-		logo.y = (FlxG.height - logo.height) / 2;
+		logo = new GameLogo(0, 0);
+		logo.x = Std.int(FlxG.width / 2 + (FlxG.width / 2 - logo.width) / 2);
+		// logo.y = Std.int((FlxG.height / 2 - logo.height) / 2);
+		logo.y = Std.int((FlxG.height - (logo.height + 64)) / 2);
 		add(logo);
 
 		dongText = new FlxText(0, 0, 0, '', 32);
@@ -124,54 +122,54 @@ class MainMenuState extends SuffState {
 		for (i in 0...topInfoTextList.length) {
 			var infoText = new FlxText(0, 0, 0, topInfoTextList[i]);
 			infoText.setFormat(Paths.font((i == 0) ? 'default' : 'unicode'), 16, FlxColor.WHITE);
-			infoText.x = FlxG.width - infoText.width - ScreenSafeZone.X;
-			infoText.y = infoText.height * i + ScreenSafeZone.Y;
+			infoText.x = FlxG.width - infoText.width - ScreenSafeArea.X;
+			infoText.y = infoText.height * i + ScreenSafeArea.Y;
 			topInfoTextGroup.add(infoText);
 		}
 
 		final bottomInfoTextList:Array<String> = [
-			Language.getPhrase('game.title'),
+			Language.getPhrase('metadata.title'),
 			#if _OFFICIAL_BUILD
-			VersionMetadata.getVersionName(FlxG.stage.application.meta.get('version')), Language.getPhrase('game.version.numeral.format',
+			VersionUtil.getVersionName(FlxG.stage.application.meta.get('version')), Language.getPhrase('metadata.version.numeral.format',
 				[FlxG.stage.application.meta.get('version') + '-' + haxe.macro.Compiler.getDefine('versionState')]),
 			#else
-			Language.getPhrase('game.version.numeralModded.format', [FlxG.stage.application.meta.get('version') + '-' + haxe.macro.Compiler.getDefine('versionState')]),
+			Language.getPhrase('metadata.version.numeralModded.format', [FlxG.stage.application.meta.get('version') + '-' + haxe.macro.Compiler.getDefine('versionState')]),
 			#end
-			Language.getPhrase('game.build.format', [PlatformMetadata.getBuildName()])
+			Language.getPhrase('game.build.format', [VersionUtil.getBuildName()])
 		];
 		add(bottomInfoTextGroup);
 		for (i in 0...bottomInfoTextList.length) {
 			var infoText = new FlxText(0, 0, 0, bottomInfoTextList[i]);
 			infoText.setFormat(Paths.font('default'), 16, FlxColor.WHITE);
-			infoText.x = FlxG.width - infoText.width - ScreenSafeZone.X;
-			infoText.y = FlxG.height - infoText.height * (bottomInfoTextList.length - i) - ScreenSafeZone.Y;
+			infoText.x = FlxG.width - infoText.width - ScreenSafeArea.X;
+			infoText.y = FlxG.height - infoText.height * (bottomInfoTextList.length - i) - ScreenSafeArea.Y;
 			bottomInfoTextGroup.add(infoText);
 		}
 
 		var creditImage = Paths.image('ui/menus/nicklySufferLogo');
-		var creditImageHovered = Paths.image('ui/menus/nicklySufferLogoHighlighted');
-		creditsButton = new SuffButton(10 + ScreenSafeZone.X, 0, '', creditImage, creditImageHovered, creditImage.width * 2, creditImage.height * 2, false);
-		creditsButton.btnTextColorHovered = 0xFFFFFF00;
-		creditsButton.y = FlxG.height - creditsButton.height - 10 - ScreenSafeZone.Y;
+		creditsButton = new SuffButton(20 + ScreenSafeArea.X, 0, '', creditImage, null, creditImage.width * 2, creditImage.height * 2, false);
+		creditsButton.y = FlxG.height - creditsButton.height - 20 - ScreenSafeArea.Y;
+		creditsButton.btnTextColorHovered = creditsButton.btnTextColorClicked = 0xFFFFFF00;
 		creditsButton.onClick = function() {
 			menuButtonFunctions('credits');
 		}
-		creditsButton.tooltipText = '© 2026 NicklySuffer';
+		creditsButton.tooltipText = Constants.COPYRIGHT;
 		add(creditsButton);
 
 		add(buttonGroup);
 
 		for (jIndex => j in menuItems) {
 			for (iIndex => item in j) {
-				var curMenuItemSize:FlxPoint = new FlxPoint((menuItemSize.x - menuItemPadding.x * (j.length - 1)) / j.length,
-					(menuItemSize.y - menuItemPadding.y * (menuItems.length - 1)) / menuItems.length);
+				var curMenuItemSize:FlxPoint = new FlxPoint(Math.min(FlxG.width / 2 - ScreenSafeArea.X * 2, (menuItemSize.x - menuItemPadding.x * (j.length - 1))) / j.length,
+					Math.max(72, (FlxG.height - (20 + ScreenSafeArea.Y) * 2 - creditsButton.height) / menuItems.length - menuItemPadding.y));
 				var button = new SuffButton(0, 0, Language.getPhrase('mainMenu.$item'), null, null, curMenuItemSize.x, curMenuItemSize.y);
 				if (disabledMenuItems.contains(item)) {
 					button.disabled = true;
 					button.tooltipText = Language.getPhrase('mainMenu.$item.tooltip.disabled');
 				}
-				button.x = (((FlxG.width - ScreenSafeZone.X * 2) / 2 - 40) - menuItemSize.x) / 2 + (curMenuItemSize.x + menuItemPadding.x) * iIndex;
-				button.y = (((FlxG.height - ScreenSafeZone.Y * 2) - ((FlxG.height - ScreenSafeZone.Y * 2) - creditsButton.y)) - menuItemSize.y) / 2 + (curMenuItemSize.y + menuItemPadding.y) * jIndex;
+				button.x = Math.max(ScreenSafeArea.X, (FlxG.width / 2 - menuItemSize.x) / 2) + (curMenuItemSize.x + menuItemPadding.x) * iIndex;
+				button.y = 20 + ScreenSafeArea.Y + (curMenuItemSize.y + menuItemPadding.y) * jIndex;
+				button.tooltipText = Language.getPhrase('mainMenu.$item.tooltip', [], '');
 				button.onClick = function() {
 					menuButtonFunctions(item);
 				};
@@ -193,20 +191,15 @@ class MainMenuState extends SuffState {
 		finishedAnimation = false;
 		var logoX = logo.x;
 		var logoY = logo.y;
-		logo.showVersion = false;
-		logo.animated = true;
 		logo.x = (FlxG.width - logo.width) / 2;
 		logo.y = -logo.height;
-		FlxTween.tween(logo, {y: logoY}, 1, {
+		FlxTween.tween(logo, {y: (FlxG.height - logo.height) / 2}, 1, {
 			ease: FlxEase.quintOut,
 			startDelay: 0.5
 		});
-		FlxTween.tween(logo, {x: logoX}, 1, {
+		FlxTween.tween(logo, {x: logoX, y: logoY}, 1, {
 			ease: FlxEase.quintInOut,
-			startDelay: 1.5,
-			onComplete: function(_) {
-				logo.showVersion = true;
-			}
+			startDelay: 1.5
 		});
 
 		var overlayPos = overlay.x;
@@ -391,9 +384,9 @@ class MainMenuState extends SuffState {
 		splashText.offset.x = -Math.pow(Math.max(0, dongsPerSecond - 5) * 6, 2);
 		dongCommentText.alpha = FlxMath.bound(splashText.offset.x / -2000, 0, 1);
 
-		logo.angle = splashText.angle = Math.sin(SuffState.timePassedOnState) * 5;
+		logo.angle = splashText.angle = Math.sin(SuffState.timePassedOnState / 2) * 3;
 		displayedLogoScale = FlxMath.lerp(displayedLogoScale, GameLogo.logoScale, elapsed * 10);
-		var leScale = displayedLogoScale - Math.pow(Math.sin(SuffState.timePassedOnState / 2), 2) * 0.05;
+		var leScale = displayedLogoScale - Math.pow(Math.sin(SuffState.timePassedOnState / 4), 2) * 0.05;
 		logo.scale.set(leScale, leScale);
 
 		splashText.x = logo.x + (logo.width - splashText.width) / 2;
@@ -444,5 +437,13 @@ class MainMenuState extends SuffState {
 			}
 		}
 		#end
+
+		if (Preferences.data.enableDebugKeybinds) {
+			if (FlxG.keys.justPressed.C) {
+				SuffState.switchState(new DiscolorationTestState());
+			} else if (FlxG.keys.justPressed.L) {
+				SuffState.switchState(new LiquidTestState());
+			}
+		}
 	}
 }

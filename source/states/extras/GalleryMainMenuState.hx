@@ -19,6 +19,8 @@ class GalleryMainMenuState extends SuffState {
 	override function create() {
 		super.create();
 
+		Window.setTitle(Language.getPhrase('galleryMainMenu.windowDisplay'));
+
 		bg = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, 0xFFFFFFFF);
 		bg.color = 0xFFE0E0E0;
 		bg.scrollFactor.set();
@@ -58,8 +60,8 @@ class GalleryMainMenuState extends SuffState {
 			envelopes.add(envelope);
 		}
 
-		exitButton = new SuffIconButton(20, 20 + ScreenSafeZone.Y, 'buttons/exit', null, 2);
-		exitButton.x = FlxG.width - exitButton.width - 20 - ScreenSafeZone.X;
+		exitButton = new SuffIconButton(20, 20 + ScreenSafeArea.Y, 'buttons/exit', null, 2);
+		exitButton.x = FlxG.width - exitButton.width - 20 - ScreenSafeArea.X;
 		exitButton.onClick = function() {
 			exitMenu();
 		};

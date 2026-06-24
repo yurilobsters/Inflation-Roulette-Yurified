@@ -1,6 +1,6 @@
 package objects;
 
-import backend.GameplayManager;
+import backend.Gameplay;
 import backend.typedefs.CharacterData;
 import backend.typedefs.CharacterCosmeticData;
 import backend.typedefs.SkillData;
@@ -8,8 +8,11 @@ import flixel.graphics.frames.FlxAtlasFrames;
 import backend.Skill;
 import states.PlayState;
 import tjson.TJSON as Json;
-import shaders.FlashingShader;
 import objects.particles.Swirl;
+import shaders.DiscolorationMaskedShader;
+import objects.particles.Liquid;
+import objects.particles.Puff;
+import backend.typedefs.CharacterOffsetsData;
 
 // import objects.particleEmitters.PuffEmitter;
 import objects.particleEmitters.FartEmitter;
@@ -21,14 +24,16 @@ class Character extends FlxSprite {
 	// public var description:String = 'No description.';
 	public var animSoundPaths:Map<String, Array<String>>;
 	public var belchThreshold:Int = 3;
+	public var leakThreshold:Int = 4;
+	public var fartThreshold:Int = 3;
+	public var navelLeakThreshold:Int = 3;
 	public var gurgleThreshold:Int = 2;
 	public var creakThreshold:Int = 4;
-	public var fartThreshold:Int = 3;
-
-	public var originPosition:Array<Int> = [0, 0];
-	public var poppedCameraOffset:Array<Int> = [0, 0];
-	public var cameraOffset:Array<Int> = [0, 0];
-	public var headParticlePosition:Array<Int> = [0, 0];
+	public var voicePitch:Float = 1;
+	public var originPosition:Array<Float> = [0, 0];
+	public var poppedCameraOffset:Array<Float> = [0, 0];
+	public var cameraOffset:Array<Float> = [0, 0];
+	public var headParticlePosition:Array<Float> = [0, 0];
 	public var particleOffsets:Map<String, Array<Array<Float>>> = [];
 	public var poppingGravityMultiplier:Float = 1.0;
 	public var poppingVelocityMultiplier:Array<Float> = [1, 1];
@@ -61,19 +66,24 @@ class Character extends FlxSprite {
 	// Cosmetic Variables //
 	public var idleAfterAnimation:Bool = true;
 	public var disableBellySounds:Bool = false;
+	public var mask:FlxSprite;
+
+	public var discoloration:DiscolorationMaskedShader;
 
 	var gurgleTimer:Float = 0;
+	var belchTimer:Float = 25;
+	var leakTimer:Float = 25;
 	var creakTimer:Float = 0;
-	var fartTimer:Float = 0;
+	var navelLeakTimer:Float = 0;
 	var swirlSpawnTimer:Float = 0;
+	static var timerMultiplier:Float = 1;
 
 	public function new(character:String, x:Float = 0, y:Float = 0) {
 		this.id = character;
-		var rawJson = Paths.getTextFromFile('data/characters/' + id + '/stats.json');
-		var json:CharacterData = cast Json.parse(rawJson);
-
-		var rawJson2 = Paths.getTextFromFile('data/characters/' + id + '/cosmetic.json');
-		var spriteJson:CharacterCosmeticData = cast Json.parse(rawJson2);
+		timerMultiplier = Preferences.data.decreaseSounds ? 3 : 1;
+		var json:CharacterData = cast Json.parse(Paths.getTextFromFile('data/characters/' + id + '/stats.json'));
+		var spriteJson:CharacterCosmeticData = cast Json.parse(Paths.getTextFromFile('data/characters/' + id + '/cosmetic.json'));
+		var offsetsJson:CharacterOffsetsData = cast Json.parse(Paths.getTextFromFile('data/characters/' + id + '/offsets.json'));
 
 		// name = json.name;
 		/*
@@ -119,11 +129,11 @@ class Character extends FlxSprite {
 				gunSkill: [[0, -320], [0, -320], [0, -360], [0, -400], [0, -400], [0, 0], [0, 0]]
 			};
 		}
-		particleOffsets.set('over', spriteJson.particleOffsets.over);
-		particleOffsets.set('mouth', spriteJson.particleOffsets.mouth);
-		particleOffsets.set('navel', spriteJson.particleOffsets.navel);
-		particleOffsets.set('gunShoot', spriteJson.particleOffsets.gunShoot);
-		particleOffsets.set('gunSkill', spriteJson.particleOffsets.gunSkill);
+		particleOffsets.set('overhead', offsetsJson.particleOffsets.overhead);
+		particleOffsets.set('mouth', offsetsJson.particleOffsets.mouth);
+		particleOffsets.set('navel', offsetsJson.particleOffsets.navel);
+		particleOffsets.set('gunShoot', offsetsJson.particleOffsets.gunShoot);
+		particleOffsets.set('gunSkill', offsetsJson.particleOffsets.gunSkill);
 		if (spriteJson.poppingVelocityMultiplier != null)
 			poppingVelocityMultiplier = spriteJson.poppingVelocityMultiplier;
 		disablePopping = !(!spriteJson.disablePopping);
@@ -136,22 +146,34 @@ class Character extends FlxSprite {
 					var skillID:String = '' + skill.id;
 					var skillCost:Int = skill.cost;
 					skills.push(new Skill(skillID, skillCost, 1));
-					currentSkills.push(new Skill(skillID, skillCost, GameplayManager.currentGamemode.skillsCostMultiplier));
+					currentSkills.push(new Skill(skillID, skillCost, Gameplay.currentGamemode.skillsCostMultiplier));
 				}
 			}
 		}
 
 		var combinedAtlas:FlxAtlasFrames = Paths.sparrowAtlas('game/characters/$id/${spriteJson.spriteSheets[0]}');
+		var combinedMaskAtlas:FlxAtlasFrames = Paths.sparrowAtlas('game/characters/$id/mask/${spriteJson.spriteSheets[0]}');
 		for (i in 1...spriteJson.spriteSheets.length) {
 			var atlas:FlxAtlasFrames = Paths.sparrowAtlas('game/characters/$id/${spriteJson.spriteSheets[i]}');
 			combinedAtlas.addAtlas(atlas, false);
+			var maskAtlas:FlxAtlasFrames = Paths.sparrowAtlas('game/characters/$id/mask/${spriteJson.spriteSheets[i]}');
+			combinedMaskAtlas.addAtlas(maskAtlas, false);
 		}
+
+		if (Preferences.data.enableDiscoloration && Preferences.data.enableGLSL && Gameplay.currentFiller.tintColor != null) {
+			var leColor = Gameplay.currentFiller.tintColor;
+			var leDestabilization:Array<Float> = Gameplay.currentFiller.destabilizationFactor;
+			discoloration = new DiscolorationMaskedShader([leColor.red, leColor.green, leColor.blue]);
+			discoloration.destabilization = leDestabilization;
+			this.shader = discoloration;
+			trace('Discoloration shader created for $id with color $leColor');
+		}
+
+		mask = new FlxSprite();
+		mask.frames = combinedMaskAtlas;
 		super(x, y);
 		frames = combinedAtlas;
 		antialiasing = (!Preferences.data.enableForcedAliasing) ? !(!spriteJson.antialiasing) : false;
-
-		if (Preferences.data.enableGLSL) {
-		}
 
 		animSoundPaths = new Map<String, Array<String>>();
 
@@ -165,8 +187,10 @@ class Character extends FlxSprite {
 				var animIndices:Array<Int> = anim.indices;
 				if (animIndices != null && animIndices.length > 0) {
 					animation.addByIndices(animName, animPrefix, animIndices, "", animFps, animLoop);
+					mask.animation.addByIndices(animName, animPrefix, animIndices, "", animFps, animLoop);
 				} else {
 					animation.addByPrefix(animName, animPrefix, animFps, animLoop);
+					mask.animation.addByPrefix(animName, animPrefix, animFps, animLoop);
 				}
 				if (anim.soundPaths != null && anim.soundPaths.length > 0)
 					addSoundPath(animName, anim.soundPaths);
@@ -176,7 +200,7 @@ class Character extends FlxSprite {
 			animation.addByPrefix('idle0', 'idle0', 24);
 		}
 		playAnim('idle');
-		boundingBox = new FlxRect((width - 250) / 2, 70, 250, 500);
+		boundingBox = new FlxRect((width - 200) / 2, 70, 200, 500);
 		animation.onFinish.add(function(animName:String) {
 			if (idleAfterAnimation && !animName.startsWith('idle'))
 				playAnim('idle' + parseAnimationSuffix());
@@ -185,41 +209,115 @@ class Character extends FlxSprite {
 		});
 	}
 
-	override function update(elapsed:Float) {
+	public override function update(elapsed:Float) {
 		super.update(elapsed);
 		if (currentPressure <= maxPressure || !disableBellySounds) {
-			if (Preferences.data.enableBellyGurgles) {
+			if (Preferences.data.enableBellyGurgles && Gameplay.currentFiller.gurgles != null) {
 				if (gurgleThreshold > -1 && currentPressure >= gurgleThreshold) {
 					gurgleTimer -= elapsed;
 					if (gurgleTimer < 0) {
 						var intensity = Math.min(1, (currentPressure - gurgleThreshold + 1) / (maxPressure - gurgleThreshold + 1));
-						gurgleTimer = FlxG.random.float(1.0, 5.0) / intensity;
-						SuffState.playSound(Paths.soundRandom('game/belly/gurgles/gurgle', 1, Constants.GURGLES_SAMPLE_COUNT), intensity * 0.65,
+						var sound = Gameplay.currentFiller.getGurgleSound();
+						SuffState.playSound(sound, intensity * 0.65,
 							FlxG.random.float(0.5, 2.0));
+						gurgleTimer = sound.length / 1000 + FlxG.random.float(-2.0, 5.0) / intensity * timerMultiplier;
 					}
 				}
 			}
-			if (Preferences.data.enableBellyCreaks) {
+			if (Preferences.data.enableBellyCreaks && Gameplay.currentFiller.creaks != null) {
 				if (creakThreshold > -1 && currentPressure >= creakThreshold) {
 					creakTimer -= elapsed;
 					if (creakTimer < 0) {
 						var intensity = Math.min(1, (currentPressure - creakThreshold + 1) / (maxPressure - creakThreshold + 1));
-						creakTimer = FlxG.random.float(1.0, 5.0) / intensity;
-						SuffState.playSound(Paths.soundRandom('game/belly/creaks/creak', 1, Constants.CREAKS_SAMPLE_COUNT), intensity * 0.65,
-							FlxG.random.float(0.5, 1.0));
+						var sound = Gameplay.currentFiller.getCreakSound();
+						SuffState.playSound(sound, intensity * 0.65,
+						FlxG.random.float(0.5, 1.0));
+						creakTimer = sound.length / 1000 + FlxG.random.float(-2.0, 5.0) / intensity * timerMultiplier;
 					}
 				}
 			}
-			if (Preferences.data.enableFarts) {
+			if (Preferences.data.enableNavelLeaking && Gameplay.currentFiller.navelLeaks) {
+				if (navelLeakThreshold > -1 && currentPressure >= navelLeakThreshold) {
+					navelLeakTimer -= elapsed;
+					if (navelLeakTimer < 0) {
+						var intensity = Math.min(1, (currentPressure - navelLeakThreshold + 1) / (maxPressure - navelLeakThreshold + 1));
+						navelLeakTimer = 0.05 / intensity;
+
+						var liquidVelocity = getParticleVelocity(64 * intensity, 0, 64);
+						var position = getParticleOffset('navel').add(x, y);
+						var liquid = new Liquid(position.x, position.y, PlayState?.instance?.stage?.data?.characterY);
+						liquid.velocity.set(liquidVelocity.x, liquidVelocity.y);
+						liquid.color = Gameplay.currentFiller.liquidColor;
+						if (PlayState?.instance != null) {
+							FlxG.state.insert(PlayState.instance.members.indexOf(PlayState.instance.characterGroup) + 1, liquid);
+						} else {
+							FlxG.state.add(liquid);
+						}
+					}
+				}
+			}
+			if (animation.curAnim.name.startsWith('idle')) {
+				if (Preferences.data.enableBelching && Gameplay.currentFiller.belches != null) {
+					if (belchThreshold > -1 && currentPressure >= belchThreshold) {
+						belchTimer -= elapsed;
+						if (belchTimer < 0) {
+							var intensity = Math.min(1, (currentPressure - belchThreshold + 1) / (maxPressure - belchThreshold + 1));
+							belchTimer = FlxG.random.float(15, 25) / intensity;
+							SuffState.playSound(Gameplay.currentFiller.getBelchSound(), intensity * 0.65,
+							voicePitch + FlxG.random.float(-0.025, 0.025));
+							playAnim('belch');
+
+							for (i in 0...Math.ceil(10 * intensity)) {
+								var liquidVelocity = getParticleVelocity(400 * intensity, 100, 200);
+								var position = getParticleOffset('mouth').add(x, y);
+								var liquid = new Puff(position.x, position.y, PlayState?.instance?.stage?.data?.characterY);
+								liquid.velocity.set(liquidVelocity.x, liquidVelocity.y);
+								liquid.color = Gameplay.currentFiller.gasColor;
+								if (PlayState?.instance != null) {
+									FlxG.state.insert(PlayState.instance.members.indexOf(PlayState.instance.characterGroup) + 1, liquid);
+								} else {
+									FlxG.state.add(liquid);
+								}
+							}
+						}
+					}
+				}
+				if (Preferences.data.enableOralLeaking && Gameplay.currentFiller.leaks != null) {
+					if (leakThreshold > -1 && currentPressure >= leakThreshold) {
+						leakTimer -= elapsed;
+						if (leakTimer < 0) {
+							var intensity = Math.min(1, (currentPressure - leakThreshold + 1) / (maxPressure - leakThreshold + 1));
+							leakTimer = FlxG.random.float(15, 25) / intensity;
+							SuffState.playSound(Gameplay.currentFiller.getLeakSound(), intensity * 0.65,
+							voicePitch + FlxG.random.float(-0.025, 0.025));
+							playAnim('leak');
+
+							for (i in 0...Math.ceil(20 * intensity)) {
+								var liquidVelocity = getParticleVelocity(100 * intensity, -10, 100);
+								var position = getParticleOffset('mouth').add(x, y);
+								var liquid = new Liquid(position.x, position.y, PlayState?.instance?.stage?.data?.characterY);
+								liquid.velocity.set(liquidVelocity.x, liquidVelocity.y);
+								liquid.color = Gameplay.currentFiller.liquidColor;
+								if (PlayState?.instance != null) {
+									FlxG.state.insert(PlayState.instance.members.indexOf(PlayState.instance.characterGroup) + 1, liquid);
+								} else {
+									FlxG.state.add(liquid);
+								}
+							}
+						}
+					}
+				}
+			}
+			if (Preferences.data.enableFarts && Gameplay.currentFiller.farts != null) {
 				if (fartThreshold > -1 && currentPressure >= fartThreshold) {
 					fartTimer -= elapsed;
 					if (fartTimer < 0) {
-						trace('Fart! P:', currentPressure, '/', maxPressure);
+						//trace('Fart! P:', currentPressure, '/', maxPressure);
 
 						var intensity = Math.min(1, (currentPressure - fartThreshold + 1) / (maxPressure - fartThreshold + 1));
 						fartTimer = FlxG.random.float(1.0, 5.0) / intensity;
-						SuffState.playSound(Paths.soundRandom('game/belly/farts/fart', 1, Constants.FARTS_SAMPLE_COUNT), intensity * 0.65,
-						FlxG.random.float(0.7, 1.3));
+						SuffState.playSound(Gameplay.currentFiller.getFartSound(), intensity * 0.65,
+							voicePitch + FlxG.random.float(-0.2, 0.2));
 
 						FlxG.state.members.insert(FlxG.state.members.indexOf(PlayState.instance.characterGroup) - 1,
 							new FartEmitter(this.x, this.y - this.height * 0.25, !this.flipX ? -225 : -90, !this.flipX ? -90 : 45, intensity));
@@ -231,16 +329,39 @@ class Character extends FlxSprite {
 		if (!canUseSkills) {
 			swirlSpawnTimer -= elapsed;
 			if (swirlSpawnTimer <= 0) {
-				var offsets = getParticleOffset('over');
-				FlxG.state.add(new Swirl(this.x
-					+ offsets.x
-					+ FlxG.random.float(-1, 1) * this.width / 5,
-					this.y
-					+ offsets.y
-					+ FlxG.random.float() * this.height / 5, 0xFFC040FF));
+				var offsets = getParticleOffset('overhead');
+				FlxG.state.add(new Swirl(this.x + offsets.x + FlxG.random.float(-1, 1) * this.width / 5, this.y + offsets.y + FlxG.random.float() * this.height / 5, 0xFFC040FF));
 				swirlSpawnTimer = FlxG.random.float();
 			}
 		}
+		if (mask != null) {
+			mask.animation.play(
+				this.animation.curAnim.name,
+				true,
+				false,
+				this.animation.curAnim.curFrame
+			);
+			mask.animation.curAnim.flipX = this.animation.curAnim.flipX;
+		}
+
+		if (discoloration != null) {
+			discoloration.setMask(mask.frame.parent.bitmap);
+			if (currentPressure > 0 && currentPressure <= maxPressure) {
+				// trace(discoloration.strength);
+				discoloration.strength += 0.02 * elapsed * getPressurePercentage();
+			}
+		}
+	}
+
+	public function getParticleVelocity(x:Float, y:Float, random:Int = 0):FlxPoint {
+		var vel = FlxPoint.get(x, y);
+		if (flipX)
+			vel.x *= -1;
+		if (animation.curAnim.flipX)
+			vel.x *= -1;
+		if (random != 0)
+			vel.add(FlxG.random.int(-random, random), FlxG.random.int(-random, random));
+		return vel;
 	}
 
 	function trimAnimationName(AnimName:String) {
@@ -284,24 +405,29 @@ class Character extends FlxSprite {
 			if (animSoundPaths.exists(usedAnimName)) {
 				var daSoundList:Array<String> = animSoundPaths.get(usedAnimName);
 				var daSound = daSoundList[FlxG.random.int(0, daSoundList.length - 1)];
-				SuffState.playSound(Paths.sound(daSound));
+				SuffState.playSound(Paths.sound(daSound), 1, voicePitch + FlxG.random.float(-0.1, 0.1));
 			}
 		}
 
 		// trace(id, usedAnimName);
 	}
 
-	public function getParticleOffset(position:String = 'over'):FlxPoint {
+	public function getParticleOffset(position:String = 'overhead'):FlxPoint {
+		var vel = FlxPoint.get(0, 0);
 		if (!particleOffsets.exists(position))
-			return FlxPoint.get(0, 0);
+			return vel;
 		var offsetArray = particleOffsets.get(position);
 		if (currentPressure > maxPressure) {
 			var index = (PlayState.currentSessionEnablePopping && !disablePopping) ? (offsetArray.length - 1) : (offsetArray.length - 2);
-			return FlxPoint.get(offsetArray[index][0] * (this.flipX ? -1 : 1), offsetArray[index][1]);
+			vel.set(offsetArray[index][0], offsetArray[index][1]);
 		} else {
-			return FlxPoint.get(offsetArray[currentPressure][0] * (this.flipX ? -1 : 1), offsetArray[currentPressure][1]);
+			vel.set(offsetArray[currentPressure][0], offsetArray[currentPressure][1]);
 		}
-		return FlxPoint.get(0, 0);
+		if (flipX)
+			vel.x *= -1;
+		if (animation.curAnim.flipX)
+			vel.x *= -1;
+		return vel;
 	}
 
 	public function parseAnimationSuffix() {

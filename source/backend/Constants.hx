@@ -67,16 +67,17 @@ class Constants {
 	public static final ORIGINAL_FLXG_HEIGHT:Float = 720;
 
 	public static final LETTERBOX_HEIGHT:Int = 72;
+	public static final COPYRIGHT:String = '© 2026 NicklySuffer';
 
 	/**
-	 * The size of CharacterSelectCards.
+	 * The size of CharacterCards.
 	 * 1st value is width, 2nd value is height
 	 */
 	public static final CHARACTER_CARD_DIMENSIONS:Array<Int> = [150, 200];
 	public static final CPU_SKILL_LIMIT:Array<Int> = [1, 3];
 
 	#if (_ALLOW_EASTER_EGGS && !mobile)
-	public static final EASTER_EGG_INPUTS:Array<String> = ['imhighoncrack', 'blueberryhelium', 'roomoneohone', 'ibeesbees'];
+	public static final EASTER_EGG_INPUTS:Array<String> = ['imhighoncrack', 'blueberryhelium', 'roomoneohone', 'ibeesbees', 'cogitoergosum', 'youreboringme'];
 	#end
 	public static final ALPHABET_UPPERCASE:String = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 

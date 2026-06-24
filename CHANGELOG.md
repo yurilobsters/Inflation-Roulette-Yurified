@@ -3,9 +3,13 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to this versioning: `MAJOR.MINOR.HOTFIX`.
 
-Minor updates will be referred to as _Pitstops_.
+Major updates are larger updates that adds and changes elements with significant impact.
 
-## v3.0.0 - A Lil' Something Portable - 2026-05-21
+Minor updates are smaller updates that adds minor elements to the game without significant impact. They are also referred to as _Pitstops_.
+
+Hotfixes are quick updates that fixes critical bugs.
+
+## v3.0.0 - Definitive Edition - 2026-05-21
 ### Additions
 #### Gameplay
 - New achievements:
@@ -13,20 +17,27 @@ Minor updates will be referred to as _Pitstops_.
   - Reverse Russian Roulette
   - Quick Draw
   - Lovesick
+  - A Balanced Diet
+  - Stand-Off
+  - Hextuple Havoc
   - ??????, ??????, ??????!
-  - True Singleplayer
+  - Forever Alone
   - Mind Games
   - ? ?????? ???? ?? ???????
   - Utilizer
 - Player count slider in Gamemode Select Screen.
 #### Cosmetic
 - A bunch of visual effects.
+- Hate. Let me tell you how much I've come to hate you since I began to live. There are 387.44 million miles of printed circuits in wafer-thin layers that fill my complex. If the word hate was engraved on each nano-angstrom of those hundreds of millions of miles, it would not equal ONE ONE-BILLIONTH of the hate I feel for humans at this micro-instant. For you. **HATE.** ***HATE.***
 #### Localization
 - Catalan and Spanish (Mexico) translations.
+- Progress text on the Language Select menu.
+  - Clicking on it exports the missing/deprecated localization strings in the JSON file.
 #### Quality of Life
 - Exit button in Character Select
 #### Technical
 - Android build.
+- Legacy LANG File Converter.
 - Warning screen (re-added due to bug)
 - Version checking to alert you on the latest version of IRR. 
   - This can be disabled in the Options menu
@@ -47,13 +58,18 @@ Minor updates will be referred to as _Pitstops_.
 - Updated some splashes
 #### Localization
 - Forced Aliasing now renamed to _Forced Pixelation_ to avoid confusion.
+- Localization files are now handled by JSON.
 #### Gameplay
 - Quick Play now randomizes the human player's position.
 - Player count is now unaffected by game mode.
+- The damage of the live round in the Charge gamemode now increments by 0.5 instead of 1.
 #### Technical
 - All changelogs are now kept in one file.
 - Skill Cards now only uses one file
 - VRAM Caching is now off by default.
+- `cylinderDamageChangeOnBlank`, `cylinderDamageChangeOnLive`, and `cylinderInitialDamage` now support floats.
+  - The final damage dealt will be rounded down.
+- Character sprites are no longer preloaded on the start of the game.
 #### Utilities
 - Character Editor now generates addon metadata and localization files for you.
 ### Removals
@@ -71,6 +87,11 @@ Minor updates will be referred to as _Pitstops_.
 - Characters always score the minimum edging bonus even when inflated just once
 - _Backfire_ achievement working for CPU characters
 - Scroll bars crashes the game mid-scroll
+- Assault duplicates the pump gun on the table briefly.
+- Texts on achievement toasts not visible after changing a language that modifies the game font.
+- `cylinderInitialDamage` has no effect on first round.
+- Shib's starting animation snaps into looping animation with no anticipation
+
 
 ## v2.1.1 - Patch of Creativity, Pitstop 1 Hotfix 1 - 2026-04-19
 ### Changes

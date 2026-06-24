@@ -1,13 +1,14 @@
 package substates;
 
 import states.PlayState;
-import backend.CharacterManager;
+import backend.Gameplay;
 import backend.Gamemode;
-import backend.GameplayManager;
+import backend.Gameplay;
 import states.CharacterSelectState;
 import ui.objects.SuffBox;
 import ui.objects.SuffIconButton;
-import ui.objects.SuffSliderOption;
+import ui.objects.SuffSlider;
+import backend.Filler;
 
 class GamemodeSelectSubState extends SuffSubState {
 	var exitButton:SuffIconButton;
@@ -17,7 +18,7 @@ class GamemodeSelectSubState extends SuffSubState {
 	var gameModeArt:FlxSprite;
 	var light:FlxSprite;
 	var lightColorTween:FlxTween;
-	var playerCountSlider:SuffSliderOption;
+	var playerCountSlider:SuffSlider;
 
 	var grpButtons:FlxTypedContainer<SuffButton> = new FlxTypedContainer<SuffButton>();
 
@@ -26,11 +27,13 @@ class GamemodeSelectSubState extends SuffSubState {
 	public function new() {
 		super();
 
+		Window.setTitle(Language.getPhrase('gamemodeSelect.windowDisplay'));
+
 		persistentUpdate = false;
 
 		var bg:FlxSprite = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
 		bg.alpha = 0;
-		FlxTween.tween(bg, {alpha: 0.5}, 0.5);
+		FlxTween.tween(bg, {alpha: 0.75}, 0.5);
 		add(bg);
 
 		light = new FlxSprite().loadGraphic(Paths.image('game/selectLight'));
@@ -45,10 +48,10 @@ class GamemodeSelectSubState extends SuffSubState {
 		gameModeArt.visible = false;
 		add(gameModeArt);
 
-		var box:SuffBox = new SuffBox(40 + ScreenSafeZone.X, 80 + ScreenSafeZone.Y, FlxG.width / 2 - 40 - ScreenSafeZone.X, FlxG.height - 120 - ScreenSafeZone.Y * 2 - 96);
+		var box:SuffBox = new SuffBox(40 + ScreenSafeArea.X, 80 + ScreenSafeArea.Y, FlxG.width / 2 - 40 - ScreenSafeArea.X, FlxG.height - 120 - ScreenSafeArea.Y * 2 - 96);
 		add(box);
 
-		playerCountSlider = new SuffSliderOption(20, 20, function(value:Float) {}, 2, 6, 1, function(value:Float) {
+		playerCountSlider = new SuffSlider(20, 20, function(value:Float) {}, 2, 6, 1, function(value:Float) {
 			return Language.getPhrase('gamemodeSelect.setting.format', [Language.getPhrase('gamemodeSelect.playerCount'), Std.int(value)]);
 		}, 4);
 
@@ -89,7 +92,7 @@ class GamemodeSelectSubState extends SuffSubState {
 			add(leButton);
 		}
 
-		var headingText:FlxText = new FlxText(ScreenSafeZone.X, ScreenSafeZone.Y, 0, Language.getPhrase('gamemodeSelect.title'), 48);
+		var headingText:FlxText = new FlxText(ScreenSafeArea.X, ScreenSafeArea.Y, 0, Language.getPhrase('gamemodeSelect.title'), 48);
 		var headingTextTargetY:Float = 4;
 		headingText.alpha = 0;
 		headingText.x = box.x + (box.width - headingText.width) / 2;
@@ -99,8 +102,8 @@ class GamemodeSelectSubState extends SuffSubState {
 		});
 		add(headingText);
 
-		exitButton = new SuffIconButton(20, 20 + ScreenSafeZone.Y, 'buttons/exit', null, 2);
-		exitButton.x = FlxG.width - exitButton.width - 20 - ScreenSafeZone.X;
+		exitButton = new SuffIconButton(20, 20 + ScreenSafeArea.Y, 'buttons/exit', null, 2);
+		exitButton.x = FlxG.width - exitButton.width - 20 - ScreenSafeArea.X;
 		exitButton.onClick = function() {
 			exitMenu();
 		};
@@ -124,38 +127,42 @@ class GamemodeSelectSubState extends SuffSubState {
 
 	function goGoGadgetGamemode(gamemode:Gamemode) {
 		leaving = true;
-		CharacterManager.setPlayerCount(Std.int(playerCountSlider.currentValue));
+		Gameplay.setPlayerCount(Std.int(playerCountSlider.currentValue));
 		switch (gamemode.id) {
 			case 'quickPlay':
-				GameplayManager.currentGamemode = GameplayManager.defaultGamemode;
-				GameplayManager.currentStage = FlxG.random.getObject(GameplayManager.globalStageList);
-				// CharacterManager.setPlayerCount(GameplayManager.currentGamemode.playerCount);
+				Gameplay.currentGamemode = Gameplay.defaultGamemode;
+				Gameplay.currentStage = FlxG.random.getObject(Gameplay.globalStageList);
+				Gameplay.currentFiller = new Filler(FlxG.random.getObject(Gameplay.globalFillerList));
+				// Gameplay.setPlayerCount(Gameplay.currentGamemode.playerCount);
 				var leRandom = [];
 				var leCPUControl = [];
-				for (num => i in CharacterManager.selectedCharacterList) {
+				for (num => i in Gameplay.selectedCharacterList) {
 					leRandom.push('random');
 					leCPUControl.push(true);
-					CharacterManager.cpuLevel[num] = FlxG.random.int(Constants.CPU_SKILL_LIMIT[0], Constants.CPU_SKILL_LIMIT[1]);
+					Gameplay.cpuLevel[num] = FlxG.random.int(Constants.CPU_SKILL_LIMIT[0], Constants.CPU_SKILL_LIMIT[1]);
 				}
 				leCPUControl[FlxG.random.int(0, leCPUControl.length - 1)] = false;
-				CharacterManager.selectedCharacterList = leRandom;
-				CharacterManager.cpuControlled = leCPUControl;
+				Gameplay.selectedCharacterList = leRandom;
+				Gameplay.cpuControlled = leCPUControl;
 				PlayState.hasSeenStartCutscene = false;
-				CharacterManager.parseRandomCharacters();
-				trace('Current characters: ', CharacterManager.selectedCharacterList);
-				trace('Current CPU level: ', CharacterManager.cpuLevel);
+				Gameplay.parseRandomCharacters();
+				trace('Current characters: ', Gameplay.selectedCharacterList);
+				trace('Current CPU level: ', Gameplay.cpuLevel);
+				trace('Current stage: ', Gameplay.currentStage);
+				trace('Current filler: ', Gameplay.currentFiller.id);
 				openSubState(new GameOnSubState(new PlayState()));
 			default:
-				GameplayManager.currentGamemode = gamemode;
-				// CharacterManager.setPlayerCount(GameplayManager.currentGamemode.playerCount);
+				Gameplay.currentGamemode = gamemode;
+				// Gameplay.setPlayerCount(Gameplay.currentGamemode.playerCount);
 				SuffState.switchState(new CharacterSelectState());
 		}
-		trace('Current gamemode: ', GameplayManager.currentGamemode);
+		trace('Current gamemode: ', Gameplay.currentGamemode);
 	}
 
 	function exitMenu() {
 		persistentUpdate = true;
 		Tooltip.text = '';
+		Window.setTitle(Language.getPhrase('mainMenu.windowDisplay'));
 		close();
 	}
 

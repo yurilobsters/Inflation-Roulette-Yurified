@@ -10,11 +10,13 @@ class ExtrasSubState extends SuffSubState {
 	public function new() {
 		super();
 
+		Window.setTitle(Language.getPhrase('extrasMenu.windowDisplay'));
+
 		persistentUpdate = false;
 
 		var bg:FlxSprite = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
 		bg.alpha = 0;
-		FlxTween.tween(bg, {alpha: 0.5}, 0.5);
+		FlxTween.tween(bg, {alpha: 0.75}, 0.5);
 		add(bg);
 
 		var box:FlxSprite = new FlxSprite().makeGraphic(840, 360, 0xFF008FB5);
@@ -92,8 +94,8 @@ class ExtrasSubState extends SuffSubState {
 		});
 		add(headingText);
 
-		exitButton = new SuffIconButton(20, 20 + ScreenSafeZone.Y, 'buttons/exit', null, 2);
-		exitButton.x = FlxG.width - exitButton.width - 20 - ScreenSafeZone.X;
+		exitButton = new SuffIconButton(20, 20 + ScreenSafeArea.Y, 'buttons/exit', null, 2);
+		exitButton.x = FlxG.width - exitButton.width - 20 - ScreenSafeArea.X;
 		exitButton.onClick = function() {
 			exitMenu();
 		};
@@ -110,6 +112,7 @@ class ExtrasSubState extends SuffSubState {
 
 	function exitMenu() {
 		persistentUpdate = true;
+		Window.setTitle(Language.getPhrase('mainMenu.windowDisplay'));
 		close();
 	}
 }

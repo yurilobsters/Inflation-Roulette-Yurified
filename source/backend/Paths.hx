@@ -12,6 +12,7 @@ import openfl.utils.Assets as OpenFlAssets;
 import openfl.system.System;
 import openfl.geom.Rectangle;
 import tjson.TJSON as Json;
+import backend.typedefs.FillerSoundData;
 
 /**
  * List of functions for getting assets.
@@ -21,6 +22,7 @@ class Paths {
 	 * The current used extension for sounds.
 	 */
 	inline public static var SOUND_EXT = #if _USE_MP3 "mp3" #else "ogg" #end;
+	inline public static var VIDEO_EXT = "mp4";
 
 	/**
 	 * List of directories to be ignored during memory clearing.
@@ -31,35 +33,57 @@ class Paths {
 	 * Preload belly sounds to memory to prevent crashes and lag spikes.
 	 */
 	public static function precacheBellySounds() {
-		var creakType:String = 'air';
-		var gurgleType:String = 'air';
-		var belchType:String = 'air';
-		var burstType:String = 'air';
-		var fartType:String = 'air';
+		var creaks:FillerSoundData = Gameplay.currentFiller?.creaks;
+		var gurgles:FillerSoundData = Gameplay.currentFiller?.gurgles;
+		var belches:FillerSoundData = Gameplay.currentFiller?.belches;
+		var leaks:FillerSoundData = Gameplay.currentFiller?.leaks;
+		var farts:FillerSoundData = Gameplay.currentFiller?.farts;
+		var bursts:FillerSoundData = Gameplay.currentFiller?.bursts;
 
-		for (i in 1...Constants.CREAKS_SAMPLE_COUNT + 1) {
-			var key:String = 'game/belly/creaks/creak_' + i;
-			precacheSound(key);
+		if (creaks != null) {
+			for (i in 1...creaks.samples + 1) {
+				var key:String = 'game/inflation/${creaks.archetype}/creaks/creak_' + i;
+				precacheSound(key);
+			}
 		}
-		for (i in 1...Constants.GURGLES_SAMPLE_COUNT + 1) {
-			var key:String = 'game/belly/gurgles/gurgle_' + i;
-			precacheSound(key);
+		if (gurgles != null) {
+			for (i in 1...gurgles.samples + 1) {
+				var key:String = 'game/inflation/${gurgles.archetype}/gurgles/gurgle_' + i;
+				precacheSound(key);
+			}
 		}
-		for (i in 1...Constants.BELCHES_SAMPLE_COUNT + 1) {
-			var key:String = 'game/belly/belches/belch_' + i;
-			precacheSound(key);
+		if (belches != null) {
+			for (i in 1...belches.samples + 1) {
+				var key:String = 'game/inflation/${belches.archetype}/belches/belch_' + i;
+				precacheSound(key);
+			}
 		}
-		for (i in 1...Constants.FARTS_SAMPLE_COUNT + 1) {
-			var key:String = 'game/belly/farts/fart_' + i;
-			precacheSound(key);
+		if (leaks != null) {
+			for (i in 1...leaks.samples + 1) {
+				var key:String = 'game/inflation/${leaks.archetype}/leaks/leak_' + i;
+				precacheSound(key);
+			}
 		}
+		if (bursts != null) {
+			for (i in 1...bursts.samples + 1) {
+				var key:String = 'game/inflation/${bursts.archetype}/bursts/burst_' + i;
+				precacheSound(key);
+			}
+		}
+
+		if (farts != null) {
+			for (i in 1...farts.samples + 1) {
+				var key:String = 'game/belly/farts/fart_' + i;
+				precacheSound(key);
+			}
+		}
+
 		for (i in 1...Constants.FWOOMPS_SAMPLE_COUNT + 1) {
-			var key:String = 'game/belly/fwoomps/fwoompLarge_' + i;
+			var key:String = 'game/inflation/universal/fwoomps/fwoompLarge_' + i;
 			precacheSound(key);
-			key = 'game/belly/fwoomps/fwoompSmall_' + i;
+			key = 'game/inflation/universal/fwoomps/fwoompSmall_' + i;
 			precacheSound(key);
 		}
-		precacheSound('game/belly/burst');
 	}
 
 	public static function precacheSound(key:String) {
@@ -128,7 +152,7 @@ class Paths {
 
 	/**
 	 * Convert a relative directory to a directory in the `assets` folder.
-	 * 
+	 *
 	 * @param file
 	 */
 	public static function getPath(file:String):String {
@@ -137,7 +161,7 @@ class Paths {
 
 	/**
 	 * Convert a relative image directory to a directory in the `assets/images` folder.
-	 * 
+	 *
 	 * @param file
 	 */
 	public static function getImagePath(file:String, suffix:Bool = true):String {
@@ -169,7 +193,7 @@ class Paths {
 
 	/**
 	 * Add the sound extention string to the end of a directory.
-	 * 
+	 *
 	 * @param file
 	 */
 	inline public static function appendSoundExt(file:String):String {
@@ -256,7 +280,7 @@ class Paths {
 
 	/**
 	 * Find the XML file for a Sparrow v2 spritesheet.
-	 * 
+	 *
 	 * @param file
 	 */
 	public static function getSparrowXmlPath(file:String):String {
@@ -270,7 +294,7 @@ class Paths {
 
 	/**
 	 * Return a Sound in the `sounds/` folder.
-	 * 
+	 *
 	 * @param key The filename of the sound.
 	 */
 	static public function sound(key:String):Sound {
@@ -280,7 +304,7 @@ class Paths {
 
 	/**
 	 * Return a Sound with variations in the `sounds/` folder.
-	 * 
+	 *
 	 * @param key The base filename of the sound.
 	 * @param min The minimum suffix value.
 	 * @param max The maximum suffix value.
@@ -291,7 +315,7 @@ class Paths {
 
 	/**
 	 * Return a Sound in the `music/` folder.
-	 * 
+	 *
 	 * @param key The filename of the music.
 	 */
 	inline static public function music(key:String):Sound {
@@ -301,7 +325,7 @@ class Paths {
 
 	/**
 	 * Return a MusicMetadata of a song in the `music/` folder by accessing its JSON metadata file.
-	 * 
+	 *
 	 * @param tag The filename of the music.
 	 */
 	inline static public function musicMetadata(tag:String):MusicMetadata {
@@ -321,7 +345,7 @@ class Paths {
 
 	/**
 	 * Returns a FlxGraphic in the `images/` folder.
-	 * 
+	 *
 	 * @param key The directory of the image in the `images/` folder.
 	 * @param allowGPU Whether to allow VRAM to store this image or not.
 	 */
@@ -371,7 +395,7 @@ class Paths {
 
 	/**
 	 * Stores a texture into memory.
-	 * 
+	 *
 	 * @param file The directory of the image in the `images/` folder.
 	 * @param bitmap The bitmap data to be stored.
 	 * @param allowGPU Whether to allow VRAM to be used or not.
@@ -407,9 +431,18 @@ class Paths {
 		return newGraphic;
 	}
 
+	static public function video(key:String) {
+		#if _ALLOW_ADDONS
+		var file:String = addonsVideos(key);
+		if (FileSystem.exists(file))
+			return file;
+		#end
+		return getPath('videos/$key.$VIDEO_EXT');
+	}
+
 	/**
 	 * Reads a text file's contents, then converts it to a String.
-	 * 
+	 *
 	 * @param key The directory of the text file.
 	 */
 	static public function getTextFromFile(key:String, addons:Bool = true):String {
@@ -450,16 +483,18 @@ class Paths {
 
 	/**
 	 * Returns a Sparrow v2 Altas to be used for animations for sprites.
-	 * 
+	 *
 	 * @param key The directory of both the image and XML file.
 	 * @param allowGPU Whether to allow VRAM to store the texture altas or not.
 	 */
-	inline static public function sparrowAtlas(key:String, ?allowGPU:Bool = true):FlxAtlasFrames {
+	inline static public function sparrowAtlas(key:String, xmlPath:String = null, ?allowGPU:Bool = true):FlxAtlasFrames {
 		var imageLoaded:FlxGraphic = image(key, allowGPU);
 		#if _ALLOW_ADDONS
 		var xmlExists:Bool = false;
 
-		var xml:String = addonsXml(key);
+		if (xmlPath == null)
+			xmlPath = key;
+		var xml:String = addonsXml(xmlPath);
 		if (FileSystem.exists(xml))
 			xmlExists = true;
 
@@ -476,7 +511,7 @@ class Paths {
 
 	/**
 	 * Returns a Sound by its directory.
-	 * 
+	 *
 	 * @param path The directory.
 	 * @param key The name to be assigned for the sound for quick access.
 	 */
@@ -526,7 +561,7 @@ class Paths {
 
 	#if _ALLOW_ADDONS
 	inline static public function addons(key:String = '') {
-		return AndroidUtils.getPath() + 'addons/' + key;
+		return AndroidUtil.getPath() + 'addons/' + key;
 	}
 
 	inline static public function addonsSounds(path:String, key:String) {
@@ -541,6 +576,13 @@ class Paths {
 		if (fileExists(langPath))
 			return langPath;
 		return addonFolders('images/' + key + '.png');
+	}
+
+	inline static public function addonsVideos(key:String) {
+		var langPath = addonFolders('lang/${Preferences.data.language}/videos/' + key + VIDEO_EXT);
+		if (fileExists(langPath))
+			return langPath;
+		return addonFolders('videos/' + key + VIDEO_EXT);
 	}
 
 	inline static public function addonsXml(key:String) {

@@ -8,6 +8,7 @@ import objects.CharacterSimple;
 import objects.particleEmitters.ScrapEmitter;
 import substates.GalleryArtworkSubState;
 import flixel.graphics.FlxGraphic;
+import backend.Gameplay;
 
 class GalleryEntryState extends SuffState {
 	var allowInput:Bool = false;
@@ -102,6 +103,8 @@ class GalleryEntryState extends SuffState {
 		title.color = overlay.color;
 		add(title);
 
+		Window.setTitle(Language.getPhrase('galleryMainMenu.windowDisplay'), titleText);
+
 		descriptionText = Language.getPhrase('galleryMainMenu.envelope.${envelopeData.id}.description');
 		description = new FlxText(title.x, title.y + title.height + 16, FlxG.width / 2 - title.x * 2, descriptionText, 32);
 		description.font = Paths.font('default');
@@ -113,8 +116,8 @@ class GalleryEntryState extends SuffState {
 		add(description);
 
 		artworkButton = new SuffIconButton(20, 20, 'buttons/artwork', null, 2);
-		artworkButton.x = FlxG.width - artworkButton.width - 20 - ScreenSafeZone.X;
-		artworkButton.y = FlxG.height - artworkButton.height - 20 - ScreenSafeZone.Y;
+		artworkButton.x = FlxG.width - artworkButton.width - 20 - ScreenSafeArea.X;
+		artworkButton.y = FlxG.height - artworkButton.height - 20 - ScreenSafeArea.Y;
 		artworkButton.onClick = function() {
 			openSubState(new GalleryArtworkSubState(envelopeData.id, envelopeData.artwork));
 		};
@@ -144,8 +147,8 @@ class GalleryEntryState extends SuffState {
 			add(characterButton);
 		}
 
-		exitButton = new SuffIconButton(20, 20 + ScreenSafeZone.Y, 'buttons/exit', null, 2);
-		exitButton.x = FlxG.width - exitButton.width - 20 - ScreenSafeZone.X;
+		exitButton = new SuffIconButton(20, 20 + ScreenSafeArea.Y, 'buttons/exit', null, 2);
+		exitButton.x = FlxG.width - exitButton.width - 20 - ScreenSafeArea.X;
 		exitButton.onClick = function() {
 			exitMenu();
 		};
@@ -237,7 +240,7 @@ class GalleryEntryState extends SuffState {
 			character.currentPressure++;
 			if (character.currentPressure <= character.maxPressure) {
 				var fwoompSuffix:String = character.getPressurePercentage() >= 0.5 ? 'Large' : 'Small';
-				SuffState.playSound(Paths.soundRandom('game/belly/fwoomps/fwoomp' + fwoompSuffix, 1, Constants.FWOOMPS_SAMPLE_COUNT), 0.75, 0.5);
+				SuffState.playSound(Paths.soundRandom('game/inflation/universal/fwoomps/fwoomp' + fwoompSuffix, 1, Constants.FWOOMPS_SAMPLE_COUNT), 0.75, 0.5);
 				character.playAnim('shocked', true);
 				if (idleTimer != null) idleTimer.cancel();
 				idleTimer = new FlxTimer().start(1.0, function(_) {
@@ -247,7 +250,7 @@ class GalleryEntryState extends SuffState {
 				if (clickRate > 5 && !character.disableBellySounds && Preferences.data.enablePopping) {
 					character.disableBellySounds = true;
 					character.popped = true;
-					SuffState.playSound(Paths.sound('game/belly/burst'));
+					SuffState.playSound(Gameplay.currentFiller.getBurstSound());
 					if (!Preferences.data.enablePhotosensitiveMode)
 						FlxG.camera.flash(0xFFFFFFFF, 0.125);
 					FlxG.camera.shake(0.02 * Preferences.data.cameraEffectIntensity, 0.125);

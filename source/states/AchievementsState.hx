@@ -43,6 +43,8 @@ class AchievementsState extends SuffState {
 	override function create() {
 		super.create();
 
+		Window.setTitle(Language.getPhrase('achievementsMenu.windowDisplay'));
+
 		persistentDraw = true;
 		persistentUpdate = false;
 
@@ -110,7 +112,7 @@ class AchievementsState extends SuffState {
 
 			num++;
 		}
-		lastPage = Math.floor((num + 1) / plaquesPerShelf / shelvesPerPage);
+		lastPage = Math.floor((num - 1) / plaquesPerShelf / shelvesPerPage);
 
 		overlay = new FlxSprite(FlxG.width).loadGraphic(Paths.image('ui/menus/achievements/overlay'));
 		overlay.scrollFactor.set();
@@ -129,7 +131,7 @@ class AchievementsState extends SuffState {
 		achievementProgress.scrollFactor.set();
 		add(achievementProgress);
 
-		exitButton = new SuffIconButton(20 + ScreenSafeZone.X, 20, 'buttons/exit', null, 2);
+		exitButton = new SuffIconButton(20 + ScreenSafeArea.X, 20, 'buttons/exit', null, 2);
 		exitButton.y = -exitButton.height;
 		exitButton.scrollFactor.set();
 		exitButton.onClick = function() {
@@ -215,7 +217,7 @@ class AchievementsState extends SuffState {
 
 		FlxTween.cancelTweensOf(spotlight, ['scale.x']);
 		if (!Preferences.data.enablePhotosensitiveMode)
-			FlxFlicker.flicker(spotlight, 0.25, FlxG.elapsed * 2, true, true);
+			FlxFlicker.flicker(spotlight, 0.25, 1 / 30, true, true);
 		FlxTween.tween(spotlight, {'scale.x': 1}, 0.25, {
 			ease: FlxEase.cubeOut
 		});
@@ -288,7 +290,7 @@ class AchievementsState extends SuffState {
 	function showUI() {
 		if (!Preferences.data.enablePhotosensitiveMode)
 			FlxG.camera.flash(0xFFFFFFFF, 0.5);
-		FlxTween.tween(exitButton, {y: 20 + ScreenSafeZone.Y}, 1, {
+		FlxTween.tween(exitButton, {y: 20 + ScreenSafeArea.Y}, 1, {
 			ease: FlxEase.backOut
 		});
 		FlxTween.tween(overlay, {x: FlxG.width - overlay.width}, 0.75, {

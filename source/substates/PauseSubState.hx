@@ -3,6 +3,7 @@ package substates;
 import backend.enums.SuffTransitionStyle;
 import states.MainMenuState;
 import states.PlayState;
+import backend.Gameplay;
 
 class PauseSubState extends SuffSubState {
 	var menuItems:Array<String> = ['resume', 'restart', 'options', 'exit'];
@@ -16,12 +17,15 @@ class PauseSubState extends SuffSubState {
 
 	public function new() {
 		super();
+
+		Window.setTitle(Language.getPhrase('pauseMenu.windowDisplay'));
+
 		FlxG.sound.music.volume = 0;
 		usedFollowLerp = FlxG.camera.followLerp;
 		FlxG.camera.followLerp = 0;
 
 		var bg:FlxSprite = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
-		bg.alpha = 0.5;
+		bg.alpha = 0.75;
 		add(bg);
 
 		pauseMusic = new FlxSound();
@@ -65,6 +69,22 @@ class PauseSubState extends SuffSubState {
 			}
 			menuButtonGroup.add(button);
 		}
+
+		var texts:Array<String> = [
+			Language.getPhrase('gamemode.${Gameplay.currentGamemode.id}.name'),
+			Language.getPhrase('gameType.' + (Gameplay.isMultiplayer() ? 'multiplayer' : 'singleplayer')),
+			Language.getPhrase('pauseMenu.details.players', [Gameplay.selectedCharacterList.length])
+		];
+		for (num => txt in texts) {
+			var text:FlxText = new FlxText(0, 0, txt, 32);
+			text.x = FlxG.width;
+			text.y = FlxG.height - (text.height * texts.length) - 32 - ScreenSafeArea.Y + num * text.height;
+			FlxTween.tween(text, {x: FlxG.width - text.width - 32 - ScreenSafeArea.X}, 1, {
+				startDelay: num * 0.1,
+				ease: FlxEase.quintOut
+			});
+			add(text);
+		}
 	}
 
 	var holdTime:Float = 0;
@@ -80,7 +100,7 @@ class PauseSubState extends SuffSubState {
 				FlxG.sound.music.volume = Preferences.data.musicVolume;
 				close();
 				if (resetMusic) {
-					SuffState.playMusic('game');
+					SuffState.playMusic(PlayState.instance.stage.data.music);
 				}
 			case 'restart':
 				restartGame();

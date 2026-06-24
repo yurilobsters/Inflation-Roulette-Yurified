@@ -33,6 +33,8 @@ class AddonsMenuState extends SuffState {
 	override function create() {
 		super.create();
 
+		Window.setTitle(Language.getPhrase('addonsMenu.windowDisplay'));
+
 		bg = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, 0xFFFFFFFF);
 		bg.alpha = 0.5;
 		add(bg);
@@ -44,13 +46,13 @@ class AddonsMenuState extends SuffState {
 		icons.alpha = 0.5;
 		add(icons);
 
-		var exitButton = new SuffIconButton(20, 20 + ScreenSafeZone.Y, 'buttons/exit', null, 2);
-		exitButton.x = FlxG.width - exitButton.width - 20 - ScreenSafeZone.X;
+		var exitButton = new SuffIconButton(20, 20 + ScreenSafeArea.Y, 'buttons/exit', null, 2);
+		exitButton.x = FlxG.width - exitButton.width - 20 - ScreenSafeArea.X;
 		exitButton.onClick = function() {
 			backToMainMenu();
 		};
 
-		SuffState.playMusic('options');
+		SuffState.playMusic('addons');
 
 		var leAddons = Addons.globalAddons;
 

@@ -4,7 +4,7 @@ package states;
 import states.easterEggStartups.*;
 #end
 import states.WarningState;
-import backend.AndroidUtils;
+import backend.AndroidUtil;
 
 class AndroidPermissionsState extends SuffState {
 	var askingForPermissions:Bool = true;
@@ -17,6 +17,8 @@ class AndroidPermissionsState extends SuffState {
 	override function create() {
 		super.create();
 
+		Window.setTitle(Language.getPhrase('androidPermissionsMenu.windowDisplay'));
+
 		bg = new FlxSprite();
 		bg.loadGraphic(Paths.image('ui/menus/android/permissionsRequired'));
 
@@ -24,7 +26,7 @@ class AndroidPermissionsState extends SuffState {
 		description = new FlxText(0, 0, title.width, Language.getPhrase('androidPermissionsMenu.description'), 32);
 		acceptButton = new SuffButton(0, 0, Language.getPhrase('menu.accept'), title.width, 100);
 		acceptButton.onClick = function() {
-			AndroidUtils.requestAllFilesPermission();
+			AndroidUtil.requestAllFilesPermission();
 		}
 		declineButton = new SuffButton(0, 0, Language.getPhrase('androidPermissionsMenu.playWithoutAddons'), title.width, 100);
 		declineButton.onClick = function() {
@@ -60,7 +62,7 @@ class AndroidPermissionsState extends SuffState {
 	override function update(elapsed:Float) {
 		super.update(elapsed);
 
-		if (askingForPermissions == true && AndroidUtils.checkAllFilesPermission()) {
+		if (askingForPermissions == true && AndroidUtil.checkAllFilesPermission()) {
 			askingForPermissions = false;
 			bg.loadGraphic(Paths.image('ui/menus/android/permissionsGranted'));
 			title.text = Language.getPhrase('androidPermissionsMenu.permissionsGranted');

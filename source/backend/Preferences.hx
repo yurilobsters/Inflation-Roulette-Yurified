@@ -8,20 +8,20 @@ class SaveVariables {
 	public var enableFullscreen:Bool = false;
 	public var pauseOnUnfocus:Bool = false;
 	public var enablePopping:Bool = true;
-	public var ignoreEliminatedPlayers:Bool = false;
+	public var skipEliminatedPlayers:Bool = false;
 	public var enableDebugKeybinds:Bool = false;
 	public var enablePhotosensitiveMode:Bool = false;
 	public var enableForcedAliasing:Bool = false;
 	public var alwaysPlayMainMenuAnims:Bool = false;
 	public var cameraSpeed:Float = 0.75;
 	public var cameraEffectIntensity:Float = 1;
-	public var screenSafeZone:Float = 0.2;
+	public var screenSafeArea:Float = 0;
 	public var enableLetterbox:Bool = true;
 	public var showMusicToast:Bool = false;
 	public var useBuiltInCursor:Bool = true;
 	public var hideHUD:Bool = false;
 	public var hideTooltip:Bool = false;
-	public var musicVolume:Float = 0.25;
+	public var musicVolume:Float = 0.35;
 	public var gameSoundVolume:Float = 1;
 	public var uiSoundVolume:Float = 0.5;
 	public var playCursorSounds:Bool = true;
@@ -36,6 +36,7 @@ class SaveVariables {
 	public var checkForUpdates:Bool = true;
 	public var enableGLSL:Bool = true;
 	public var decreaseDetail:Bool = false;
+	public var decreaseSounds:Bool = false;
 	public var language:String = 'en-US';
 
 	public function new() {
@@ -121,7 +122,7 @@ class Preferences {
 				keybinds.set(name, value);
 		}
 		Controls.reloadKeybinds();
-		ScreenSafeZone.recalculateConstants();
+		ScreenSafeArea.recalculateConstants();
 
 		if (Main.debugText != null) {
 			Main.debugText.updateText();

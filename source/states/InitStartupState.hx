@@ -5,7 +5,7 @@ import states.WarningState;
 import states.easterEggStartups.*;
 #end
 #if android
-import backend.AndroidUtils;
+import backend.AndroidUtil;
 import states.AndroidPermissionsState;
 import backend.Addons.Addons.pushGlobalAddons;
 import backend.Addons;
@@ -25,7 +25,7 @@ class InitStartupState extends SuffState {
 		new FlxTimer().start(1.5, function(tmr:FlxTimer) {
 			var startupState = '';
 			#if (_ALLOW_ADDONS && android)
-			if (!AndroidUtils.checkAllFilesPermission() && !AndroidPermissionsState.deniedPermissions) {
+			if (!AndroidUtil.checkAllFilesPermission() && !AndroidPermissionsState.deniedPermissions) {
 				SuffState.switchState(new AndroidPermissionsState());
 				return;
 			}
@@ -48,6 +48,10 @@ class InitStartupState extends SuffState {
 					SuffState.switchState(new RoomOneOhOneStartupState());
 				case 'ibeesbees':
 					SuffState.switchState(new IBeesBeesStartupState());
+				case 'cogitoergosum':
+					SuffState.switchState(new CogitoErgoSumStartupState());
+				case 'youreboringme':
+					SuffState.switchState(new YouReBoringMeStartupState());
 				#end
 				default:
 					SuffState.switchState(new StartupState());

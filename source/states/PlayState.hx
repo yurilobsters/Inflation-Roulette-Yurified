@@ -1,8 +1,8 @@
 package states;
 
 import ui.objects.GameIcon;
-import backend.CharacterManager;
-import backend.GameplayManager;
+import backend.Gameplay;
+import backend.Gameplay;
 import backend.enums.RoundRandomStatus;
 import backend.enums.SuffTransitionStyle;
 import objects.Character;
@@ -14,17 +14,22 @@ import ui.objects.SkillCard;
 import ui.objects.SuffBar;
 import ui.objects.SuffIconButton;
 import objects.Stage;
-import backend.Scoring;
+import backend.ScoringUtil;
 import objects.particles.SkillIndicator;
 import ui.objects.RevealBullet;
 import shaders.GaussianBlurShader;
 import objects.particles.Bloosh;
-import objects.particleEmitters.PuffEmitter;
+import objects.particleEmitters.PopEmitter;
 import objects.particles.BulletShell;
 import objects.particles.PlayerIndicator;
+import backend.RecordingUtil;
+import objects.particles.Liquid;
+import objects.particles.Stain;
+import objects.NPC;
 
 class PlayState extends SuffState {
 	public var characterGroup:FlxTypedContainer<Character> = new FlxTypedContainer<Character>();
+	public var npcGroup:FlxTypedContainer<NPC> = new FlxTypedContainer<NPC>();
 
 	var letterboxTop:FlxSprite;
 	var letterboxBottom:FlxSprite;
@@ -73,7 +78,7 @@ class PlayState extends SuffState {
 	public var canUseSkillKeybinds:Bool = false;
 
 	var cylinderContent:Array<Bool> = []; // True: Live, False: Blank
-	var liveRoundDamage:Int = 1;
+	var liveRoundDamage:Float = 1;
 	// This array is only used when cylinderTrueRandomness is true.
 	var roundRandomStatuses:Array<RoundRandomStatus> = [POSSIBLE];
 
@@ -93,6 +98,7 @@ class PlayState extends SuffState {
 	var isManuallyFocusingStage:Bool = false;
 
 	public var camGame:FlxCamera;
+	public var camEffects:FlxCamera;
 	public var camHUD:FlxCamera;
 	public var camOther:FlxCamera;
 
@@ -108,28 +114,54 @@ class PlayState extends SuffState {
 	public var stage:Stage;
 
 	override public function create() {
+		RecordingUtil.checkIfRecording();
+
+		liveRoundDamage = Gameplay.currentGamemode.cylinderInitialDamage;
+
 		camGame = new FlxCamera();
+		camEffects = new FlxCamera();
 		camHUD = new FlxCamera();
 		camOther = new FlxCamera();
+		camEffects.bgColor.alpha = 0;
 		camHUD.bgColor.alpha = 0;
 		camOther.bgColor.alpha = 0;
 
-		skillCardsGroupPaddingX = 10 + ScreenSafeZone.X;
+		skillCardsGroupPaddingX = 10 + ScreenSafeArea.X;
 
 		FlxG.cameras.reset(camGame);
+		FlxG.cameras.add(camEffects, false);
 		FlxG.cameras.add(camHUD, false);
 		FlxG.cameras.add(camOther, false);
 		camHUD.visible = !Preferences.data.hideHUD;
 
 		FlxG.cameras.setDefaultDrawTarget(camGame, true);
 
-		Paths.precacheBellySounds();
+		// Paths.precacheBellySounds();
+
+		// Recursively cache NPC sprites
+		// Nvm this shit doesnt work
+		/*
+		var loadedNpcs:Array<NPC> = [];
+		if (Gameplay.currentFiller.npcOnPop != '') {
+			var firstNpc:NPC = new NPC(Gameplay.currentFiller.npcOnPop);
+			loadedNpcs.push(firstNpc);
+			while (firstNpc.mergedNpc != '') {
+				firstNpc = new NPC(firstNpc.mergedNpc);
+				loadedNpcs.push(firstNpc);
+			}
+		}
+		// Bye bye NPCs
+		for (npc in loadedNpcs) {
+			npc.active = false;
+			loadedNpcs.remove(npc);
+		}
+		 */
 
 		super.create();
 
 		instance = this;
 
-		stage = new Stage(GameplayManager.currentStage);
+		stage = new Stage(Gameplay.currentStage);
 
 		currentSessionEnablePopping = Preferences.data.enablePopping;
 
@@ -140,23 +172,25 @@ class PlayState extends SuffState {
 		FlxG.camera.followLerp = 0.1 * Preferences.data.cameraSpeed;
 		FlxG.camera.setScrollBoundsRect(stage.data.cameraBounds[0], stage.data.cameraBounds[1], stage.data.cameraBounds[2], stage.data.cameraBounds[3]);
 
-		reloadCylinder(GameplayManager.currentGamemode.cylinderLiveCount);
+		reloadCylinder(Gameplay.currentGamemode.cylinderLiveCount);
 
 		pumpGun = new FlxSprite().loadGraphic(Paths.image('game/pumpGun'));
 
 		characterGroup = new FlxTypedContainer<Character>();
 		add(characterGroup);
-		for (i in 0...CharacterManager.selectedCharacterList.length) {
+		npcGroup = new FlxTypedContainer<NPC>();
+		add(npcGroup);
+		for (i in 0...Gameplay.selectedCharacterList.length) {
 			pressurizeStreak.push(0);
-			var leX:Int = Std.int(FlxMath.lerp(FlxG.width / 2 + stage.data.characterX[0], FlxG.width / 2 + stage.data.characterX[1], i / (CharacterManager.selectedCharacterList.length - 1)));
-			var char:Character = new Character(CharacterManager.selectedCharacterList[i], leX, stage.data.characterY);
-			if (i >= Std.int(CharacterManager.selectedCharacterList.length / 2)) {
+			var leX:Int = Std.int(FlxMath.lerp(FlxG.width / 2 + stage.data.characterX[0], FlxG.width / 2 + stage.data.characterX[1], i / (Gameplay.selectedCharacterList.length - 1)));
+			var char:Character = new Character(Gameplay.selectedCharacterList[i], leX, stage.data.characterY);
+			if (i >= Std.int(Gameplay.selectedCharacterList.length / 2)) {
 				char.flipX = true;
 			}
 			char.playAnim('idle' + char.currentPressure);
 
-			char.cpuControlled = CharacterManager.cpuControlled[i];
-			char.cpuSkillLevel = CharacterManager.cpuLevel[i];
+			char.cpuControlled = Gameplay.cpuControlled[i];
+			char.cpuSkillLevel = Gameplay.cpuLevel[i];
 
 			pumpGunXDestinations.push(char.x - pumpGun.width / 2);
 
@@ -165,7 +199,7 @@ class PlayState extends SuffState {
 		}
 
 		// skillsFixedPool or skillsRandomPool is not empty
-		if (GameplayManager.currentGamemode.skillsFixedPool.length + GameplayManager.currentGamemode.skillsRandomPool.length > 0) {
+		if (Gameplay.currentGamemode.skillsFixedPool.length + Gameplay.currentGamemode.skillsRandomPool.length > 0) {
 			for (char in characterGroup) {
 				char.currentSkills = [];
 			}
@@ -181,6 +215,7 @@ class PlayState extends SuffState {
 
 		if (!hasSeenStartCutscene && FlxG.random.bool(1 / 64 * 100)) {
 			Achievements.advanceProgress('findCameraman', [true]);
+
 			var cobalt:FlxSprite = new FlxSprite();
 			cobalt.frames = Paths.sparrowAtlas('game/cobalt');
 			cobalt.animation.addByPrefix('appear', 'appear', 24, false);
@@ -188,7 +223,7 @@ class PlayState extends SuffState {
 			cobalt.x = FlxG.width - cobalt.width;
 			cobalt.y = FlxG.height - cobalt.height;
 			cobalt.animation.onFrameChange.add(function(animName, frameNumber, frameIndex) {
-				if (frameNumber == 1) SuffState.playSound(Paths.sound('game/glassTap'));
+				if (frameNumber == 4 || frameNumber == 10) SuffState.playSound(Paths.sound('game/glassTap'));
 			});
 			cobalt.animation.onFinish.add(function(_) {
 				cobalt.destroy();
@@ -209,13 +244,18 @@ class PlayState extends SuffState {
 				cobalt.antialiasing = !Preferences.data.enableForcedAliasing;
 			} else
 				cobalt.color = 0xFF808080;
-			cobalt.camera = camOther;
+			cobalt.camera = camEffects;
 			add(cobalt);
 		}
 
 		stage.load();
 
-		selectLight = new FlxSprite().loadGraphic(Paths.image('game/selectLight' + (FlxG.random.bool(1 / 128 * 100) ? 'Alt' : '')));
+		selectLight = new FlxSprite();
+		selectLight.loadGraphic(Paths.image('game/selectLight'));
+		#if _ALLOW_EASTER_EGGS
+		if (FlxG.random.bool(1 / 128 * 100))
+			selectLight.loadGraphic(Paths.image('game/selectLightAlt'));
+		#end
 		selectLight.visible = false;
 		members.insert(members.indexOf(characterGroup), selectLight);
 
@@ -241,7 +281,7 @@ class PlayState extends SuffState {
 		letterboxBottom.y = FlxG.height;
 		add(letterboxBottom);
 
-		selectTargetText = new FlxText(Language.getPhrase('gameUI.selectTarget'), 48);
+		selectTargetText = new FlxText(Language.getPhrase('game.selectTarget'), 48);
 		selectTargetText.setBorderStyle(OUTLINE, 0xFF000000, 3.25);
 		selectTargetText.x = Std.int((FlxG.width - selectTargetText.width) / 2);
 		selectTargetText.y = -selectTargetText.height;
@@ -272,7 +312,7 @@ class PlayState extends SuffState {
 		skillsIcon.y = skillsText.y + (skillsText.height - skillsIcon.height) / 2;
 		uiBGGroup.add(skillsIcon);
 
-		pressureIcon = new GameIcon(ScreenSafeZone.X, 0, 'stats/pressure', 32);
+		pressureIcon = new GameIcon(ScreenSafeArea.X, 0, 'stats/pressure', 32);
 
 		pressureText = new FlxText(pressureIcon.x + pressureIcon.width + 4, 0, 0, '');
 		pressureText.setFormat(Paths.font('default'), 32, pressureBarColors[0]);
@@ -287,7 +327,7 @@ class PlayState extends SuffState {
 		confidenceBar = new SuffBar(0, 0, function() return 0, 0, 1, Std.int(uiBGTop.width), 20, 4, 1, confidenceBarColors[0], confidenceBarColors[1]);
 		uiBGGroup.add(confidenceBar);
 
-		confidenceIcon = new GameIcon(ScreenSafeZone.X, 0, 'stats/confidence', 32);
+		confidenceIcon = new GameIcon(ScreenSafeArea.X, 0, 'stats/confidence', 32);
 
 		confidenceText = new FlxText(confidenceIcon.x + confidenceIcon.width + 4, 0, 0, '');
 		confidenceText.setFormat(Paths.font('default'), 32, confidenceBarColors[0]);
@@ -303,24 +343,25 @@ class PlayState extends SuffState {
 		var shootButtonImage = Paths.image('ui/icons/buttons/shoot');
 		var shootButtonHighlightedImage = Paths.image('ui/icons/buttons/shootHighlighted');
 		shootButton = new SuffButton(0, 0, null, shootButtonImage, shootButtonHighlightedImage, shootButtonImage.width, shootButtonImage.height, false);
-		shootButton.y = FlxG.height - shootButton.height - ScreenSafeZone.Y;
+		shootButton.y = FlxG.height - shootButton.height - ScreenSafeArea.Y;
 		shootButton.camera = camHUD;
 		shootButton.onClick = function() {
 			deployGun(currentTurnIndex, function() return getPlayer(currentTurnIndex).getPressurePercentage());
 		}
 		add(shootButton);
 
-		pauseButton = new SuffIconButton(20, 20 + ScreenSafeZone.Y, 'buttons/pause', null, 2);
-		pauseButton.x = FlxG.width - pauseButton.width - 20 - ScreenSafeZone.X;
+		pauseButton = new SuffIconButton(20, 20 + ScreenSafeArea.Y, 'buttons/pause', null, 2);
+		pauseButton.x = FlxG.width - pauseButton.width - 20 - ScreenSafeArea.X;
 		pauseButton.camera = camHUD;
 		pauseButton.onClick = function() {
 			pauseGame();
+			openSubState(new PauseSubState());
 		};
 		add(pauseButton);
 
 		cameraFocusButton = new SuffIconButton(20, 20, 'buttons/camera', null, 2);
-		cameraFocusButton.x = FlxG.width - cameraFocusButton.width - 20 - ScreenSafeZone.X;
-		cameraFocusButton.y = FlxG.height - cameraFocusButton.height - 20 - ScreenSafeZone.Y;
+		cameraFocusButton.x = FlxG.width - cameraFocusButton.width - 20 - ScreenSafeArea.X;
+		cameraFocusButton.y = FlxG.height - cameraFocusButton.height - 20 - ScreenSafeArea.Y;
 		cameraFocusButton.camera = camHUD;
 		cameraFocusButton.onClick = function() {
 			toggleCameraFocus();
@@ -338,11 +379,11 @@ class PlayState extends SuffState {
 		add(skillCancelButton);
 		
 		var humanPlayer:Int = 0;
-		var humanPlayerCount = [for (i in CharacterManager.cpuControlled) if (!i) i].length;
-		for (num => i in CharacterManager.cpuControlled) {
+		var humanPlayerCount = [for (i in Gameplay.cpuControlled) if (!i) i].length;
+		for (num => i in Gameplay.cpuControlled) {
 			if (i) continue;
 			var player = getPlayer(num);
-			var offset = player.getParticleOffset('over');
+			var offset = player.getParticleOffset('overhead');
 			members.insert(members.indexOf(characterGroup) + 1, new PlayerIndicator(player.x + offset.x, player.y + offset.y, humanPlayer, humanPlayerCount == 1));
 			humanPlayer ++;
 		}
@@ -357,6 +398,12 @@ class PlayState extends SuffState {
 		} else {
 			finishStartCutscene();
 		}
+
+		setWindowTitle();
+	}
+
+	public function setWindowTitle() {
+		Window.setTitle(Language.getPhrase('game.windowDisplay', [Language.getPhrase('gamemode.' + Gameplay.currentGamemode.id + '.name'), Language.getPhrase('gameType.' + (Gameplay.isMultiplayer() ? 'multiplayer' : 'singleplayer')), characterGroup.members.length]));
 	}
 
 	private function set_isSelectingPlayer(value:Bool):Bool {
@@ -488,8 +535,10 @@ class PlayState extends SuffState {
 		return maxLength;
 	}
 
-	function playGunContactSound(volume:Float = 1) {
+	function playGunContactSound(glassVolume:Float = 0) {
 		SuffState.playSound(Paths.soundRandom('game/weapon', 1, 3));
+		if (glassVolume <= 0) return;
+		SuffState.playSound(Paths.sound('game/glassTap'), glassVolume);
 	}
 
 	function togglePauseFunctionality(enable:Bool = true) {
@@ -510,24 +559,24 @@ class PlayState extends SuffState {
 
 		// I am sorry future me
 		animAllCharacters('introPartOne', 1, false); // All characters play their first intro animation
-		new FlxTimer().start(1 + getMaximumAnimLength('introPartOne'), function(_:FlxTimer) { // First intro animation delay + 1.5 seconds
+		new FlxTimer().start(1.5 + getMaximumAnimLength('introPartOne'), function(_:FlxTimer) { // First intro animation delay + 1.5 seconds
 			FlxTween.tween(pumpGun, {y: pumpGunY}, 0.5, { // Gun lands on table
 				onComplete: function(_:FlxTween) {
 					animAllCharacters('introPartTwo', 0.5, true); // All characters play their second intro animation
-					new FlxTimer().start(1 + getMaximumAnimLength('introPartTwo'), function(_:FlxTimer) {
+					new FlxTimer().start(1.5 + getMaximumAnimLength('introPartTwo'), function(_:FlxTimer) {
 						finishStartCutscene();
 					});
-					playGunContactSound(); // Gun bounces on table
+					playGunContactSound(1); // Gun bounces on table
 					FlxTween.tween(pumpGun, {y: pumpGunY - 50}, 0.25, {
 						ease: FlxEase.quadOut, onComplete: function(_:FlxTween) { // Gun lands on table 2nd time
 							FlxTween.tween(pumpGun, {y: pumpGunY}, 0.25, {
 								ease: FlxEase.quadIn, onComplete: function(_:FlxTween) { // Gun bounces on table 2nd time
-									playGunContactSound();
+									playGunContactSound(0.5);
 									FlxTween.tween(pumpGun, {y: pumpGunY - 10}, 0.125, {
 										ease: FlxEase.quadOut, onComplete: function(_:FlxTween) { // Gun lands on table FINAL TIME
 											FlxTween.tween(pumpGun, {y: pumpGunY}, 0.125, {
 												ease: FlxEase.quadIn, onComplete: function(_:FlxTween) {
-													playGunContactSound();
+													playGunContactSound(0.25);
 												}
 											});
 										}
@@ -546,7 +595,7 @@ class PlayState extends SuffState {
 		toggleLetterbox(false);
 		cameraFocusButton.visible = true;
 		canUseSkillKeybinds = true;
-		SuffState.playMusic('game', 1, true);
+		SuffState.playMusic(stage.data.music, 1, true);
 
 		doTween('camHUD', FlxTween.tween(camHUD, {alpha: 1}, 0.5));
 
@@ -559,11 +608,11 @@ class PlayState extends SuffState {
 	function reloadCylinder(liveRounds:Int = 1) {
 		cylinderContent = [];
 		var liveRoundsInserted:Int = 0;
-		for (i in 0...GameplayManager.currentGamemode.cylinderSize) {
+		for (i in 0...Gameplay.currentGamemode.cylinderSize) {
 			cylinderContent.push(false);
 		}
-		while (liveRoundsInserted < Math.min(GameplayManager.currentGamemode.cylinderSize, liveRounds)) {
-			var leIndex = FlxG.random.int(0, GameplayManager.currentGamemode.cylinderSize - 1);
+		while (liveRoundsInserted < Math.min(Gameplay.currentGamemode.cylinderSize, liveRounds)) {
+			var leIndex = FlxG.random.int(0, Gameplay.currentGamemode.cylinderSize - 1);
 			if (cylinderContent[leIndex] != true) {
 				cylinderContent[leIndex] = true;
 				liveRoundsInserted++;
@@ -611,7 +660,7 @@ class PlayState extends SuffState {
 			actualAnimName = 'skill';
 		}
 		getPlayer(playerIndex).playAnim(actualAnimName);
-		var offsets = getPlayer(playerIndex).getParticleOffset('over');
+		var offsets = getPlayer(playerIndex).getParticleOffset('overhead');
 		members.insert(members.indexOf(getPlayer(playerIndex)), new SkillIndicator(getPlayer(playerIndex).x + offsets.x, getPlayer(playerIndex).y + offsets.y, skill.id));
 
 		switch (skill.id) {
@@ -622,7 +671,7 @@ class PlayState extends SuffState {
 						members.insert(members.indexOf(characterGroup) + 1, bulletShell);
 					}
 				}
-				reloadCylinder(GameplayManager.currentGamemode.cylinderLiveCount);
+				reloadCylinder(Gameplay.currentGamemode.cylinderLiveCount);
 			case 'sabotage':
 				cylinderContent[0] = false;
 				if (cylinderContent.length > 1) {
@@ -630,7 +679,7 @@ class PlayState extends SuffState {
 				} else {
 					cylinderContent.push(true);
 				}
-				if (GameplayManager.currentGamemode.cylinderTrueRandomness) {
+				if (Gameplay.currentGamemode.cylinderTrueRandomness) {
 					roundRandomStatuses[0] = IMPOSSIBLE;
 					if (roundRandomStatuses.length > 1) {
 						roundRandomStatuses[1] = GUARANTEED;
@@ -638,7 +687,7 @@ class PlayState extends SuffState {
 						roundRandomStatuses.push(GUARANTEED);
 					}
 				}
-				if (!CharacterManager.cpuControlled[playerIndex])
+				if (!Gameplay.cpuControlled[playerIndex])
 					Achievements.advanceProgress('sabotages', [1]);
 				for (i in 0...characterGroup.members.length) {
 					if (!getPlayer((playerIndex + 1) % characterGroup.members.length).isEliminated()) {
@@ -650,13 +699,13 @@ class PlayState extends SuffState {
 				liveRoundDamage *= 2;
 				lastPressurizeUserIndex = playerIndex;
 				pressurizeStreak[playerIndex]++;
-				if (pressurizeStreak[playerIndex] >= 2 && !CharacterManager.cpuControlled[playerIndex])
+				if (pressurizeStreak[playerIndex] >= 2 && !Gameplay.cpuControlled[playerIndex])
 					Achievements.advanceProgress('doublePressurize', [true]);
 			case 'polarize':
 				cylinderContent[0] = !cylinderContent[0];
 				if (!getPlayer(playerIndex).cpuControlled) {
 					playerUsedPolarize = true;
-					if (!cylinderContent[0] && cylinderContent.length >= GameplayManager.currentGamemode.cylinderSize && !GameplayManager.currentGamemode.cylinderTrueRandomness)
+					if (!cylinderContent[0] && cylinderContent.length >= Gameplay.currentGamemode.cylinderSize && !Gameplay.currentGamemode.cylinderTrueRandomness)
 						luckyPolarize = true;
 				}
 			case 'deflate':
@@ -671,15 +720,15 @@ class PlayState extends SuffState {
 
 		getPlayer(playerIndex).currentConfidence -= skill.cost;
 		getPlayer(playerIndex).skillUseCount++;
-		if (GameplayManager.currentGamemode.skillsExhaustible) {
+		if (Gameplay.currentGamemode.skillsTangible) {
 			getPlayer(playerIndex).currentSkills.remove(skill);
 		}
 
 		toggleLetterbox(true);
 		// trace(getPlayer(playerIndex).animSoundPaths[soundName]);
 		if (getPlayer(playerIndex).animSoundPaths[soundName] == null || getPlayer(playerIndex).animSoundPaths[soundName].length <= 0) {
-			if (Paths.fileExists(Paths.getSoundPath('game/characters/GLOBAL/' + soundName), SOUND)) {
-				SuffState.playSound(Paths.sound('game/characters/GLOBAL/' + soundName));
+			if (Paths.fileExists(Paths.getSoundPath('game/skills/' + soundName), SOUND)) {
+				SuffState.playSound(Paths.sound('game/skills/' + soundName));
 			}
 		}
 		doTimer('reenablePlayerUI', new FlxTimer().start(getPlayer(playerIndex).getCurAnimLength(), function(_:FlxTimer) {
@@ -706,7 +755,7 @@ class PlayState extends SuffState {
 		}
 		getPlayer(attackerIndex).currentConfidence -= skill.cost;
 		getPlayer(attackerIndex).skillUseCount++;
-		if (GameplayManager.currentGamemode.skillsExhaustible) {
+		if (Gameplay.currentGamemode.skillsTangible) {
 			getPlayer(attackerIndex).currentSkills.remove(skill);
 		}
 
@@ -732,7 +781,7 @@ class PlayState extends SuffState {
 							Achievements.advanceProgress('eliminateByAssault', [true]);
 					}
 					shoot(victimIndex, false);
-					pumpGun.visible = true;
+					pumpGun.visible = false;
 					var flipX:Bool = (attackerIndex - victimIndex) < 0;
 					if (getPlayer(victimIndex).flipX) flipX = !flipX;
 					getPlayer(victimIndex).playAnim('shocked', true, true, flipX);
@@ -760,13 +809,13 @@ class PlayState extends SuffState {
 		var flipX:Bool = (attackerIndex - victimIndex) > 0;
 		if (getPlayer(attackerIndex).flipX) flipX = !flipX;
 		getPlayer(attackerIndex).playAnim(actualAnimName, false, true, flipX);
-		var offsets = getPlayer(attackerIndex).getParticleOffset('over');
+		var offsets = getPlayer(attackerIndex).getParticleOffset('overhead');
 		members.insert(members.indexOf(getPlayer(attackerIndex)), new SkillIndicator(getPlayer(attackerIndex).x + offsets.x, getPlayer(attackerIndex).y + offsets.y, skill.id));
 
 		toggleLetterbox(true);
 		if (getPlayer(attackerIndex).animSoundPaths[soundName] == null || getPlayer(attackerIndex).animSoundPaths[soundName].length <= 0) {
-			if (Paths.fileExists(Paths.getSoundPath('game/characters/GLOBAL/' + soundName), SOUND)) {
-				SuffState.playSound(Paths.sound('game/characters/GLOBAL/' + soundName));
+			if (Paths.fileExists(Paths.getSoundPath('game/skills/' + soundName), SOUND)) {
+				SuffState.playSound(Paths.sound('game/skills/' + soundName));
 			}
 		}
 	}
@@ -784,7 +833,7 @@ class PlayState extends SuffState {
 	public function cancelOffensiveSkill() {
 		isSelectingPlayer = false;
 		canUseSkillKeybinds = true;
-		togglePlayerUI((currentTurnIndex == offensiveSkillAttacker && !CharacterManager.cpuControlled[currentTurnIndex]));
+		togglePlayerUI((currentTurnIndex == offensiveSkillAttacker && !Gameplay.cpuControlled[currentTurnIndex]));
 		if (currentTurnIndex == offensiveSkillAttacker) {
 			toggleCameraFocusButton(true);
 		}
@@ -793,7 +842,7 @@ class PlayState extends SuffState {
 
 	public function shoot(playerIndex:Int, passToPlayer:Bool = true) {
 		var dealDamage:Bool = false;
-		if (!GameplayManager.currentGamemode.cylinderTrueRandomness)
+		if (!Gameplay.currentGamemode.cylinderTrueRandomness)
 			dealDamage = cylinderContent[0]; else {
 			switch (roundRandomStatuses[0]) {
 				case GUARANTEED:
@@ -801,7 +850,7 @@ class PlayState extends SuffState {
 				case IMPOSSIBLE:
 					dealDamage = false;
 				default:
-					dealDamage = FlxG.random.bool((GameplayManager.currentGamemode.cylinderLiveCount / GameplayManager.currentGamemode.cylinderSize) * 100);
+					dealDamage = FlxG.random.bool((Gameplay.currentGamemode.cylinderLiveCount / Gameplay.currentGamemode.cylinderSize) * 100);
 			}
 			roundRandomStatuses.shift();
 			if (roundRandomStatuses.length <= 0)
@@ -826,6 +875,7 @@ class PlayState extends SuffState {
 			getPlayer(playerIndex).currentPressure += 1;
 			getPlayer(playerIndex).currentConfidence += getPlayer(playerIndex).confidenceChangeOnLiveShot;
 			if (liveRoundDamage > 1) {
+				liveRoundDamage = Std.int(liveRoundDamage);
 				liveRoundDamage -= 1;
 				if (!getPlayer(playerIndex).isEliminated()) {
 					doTimer('morePressure', new FlxTimer().start(0.75, function(_) {
@@ -836,28 +886,28 @@ class PlayState extends SuffState {
 						shoot(playerIndex, passToPlayer);
 					}));
 				} else {
-					liveRoundDamage = GameplayManager.currentGamemode.cylinderInitialDamage;
+					liveRoundDamage = Gameplay.currentGamemode.cylinderInitialDamage;
 					cylinderContent.shift();
 					checkToReloadCylinder();
-					if (GameplayManager.currentGamemode.skillsFixedPool.length + GameplayManager.currentGamemode.skillsRandomPool.length > 0) {
-						giveSkillsToAllPlayers(GameplayManager.currentGamemode.skillsReplenishCountOnLive);
+					if (Gameplay.currentGamemode.skillsFixedPool.length + Gameplay.currentGamemode.skillsRandomPool.length > 0) {
+						giveSkillsToAllPlayers(Gameplay.currentGamemode.skillsReplenishCountOnLive);
 					}
 				}
 			} else {
 				cylinderContent.shift();
 				checkToReloadCylinder();
-				if (GameplayManager.currentGamemode.skillsFixedPool.length + GameplayManager.currentGamemode.skillsRandomPool.length > 0) {
-					giveSkillsToAllPlayers(GameplayManager.currentGamemode.skillsReplenishCountOnLive);
+				if (Gameplay.currentGamemode.skillsFixedPool.length + Gameplay.currentGamemode.skillsRandomPool.length > 0) {
+					giveSkillsToAllPlayers(Gameplay.currentGamemode.skillsReplenishCountOnLive);
 				}
 			}
 
-			liveRoundDamage += GameplayManager.currentGamemode.cylinderDamageChangeOnLive;
+			liveRoundDamage += Gameplay.currentGamemode.cylinderDamageChangeOnLive;
 
 			var percent = getPlayer(playerIndex).getPressurePercentage();
 			var fwoompSuffix:String = percent >= 0.5 ? 'Large' : 'Small';
-			SuffState.playSound(Paths.soundRandom('game/belly/fwoomps/fwoomp' + fwoompSuffix, 1, Constants.FWOOMPS_SAMPLE_COUNT), 0.75, 0.5);
+			SuffState.playSound(Paths.soundRandom('game/inflation/universal/fwoomps/fwoomp' + fwoompSuffix, 1, Constants.FWOOMPS_SAMPLE_COUNT), 0.75, 0.5);
 			if (Preferences.data.enableBellyCreaks) {
-				SuffState.playSound(Paths.soundRandom('game/belly/creaks/creak', 1, Constants.CREAKS_SAMPLE_COUNT), percent, percent * 1.5 + 1);
+				SuffState.playSound(Gameplay.currentFiller.getCreakSound(), percent, percent * 1.5 + 1);
 			}
 
 			screenShake(0.01, 0.1);
@@ -865,10 +915,10 @@ class PlayState extends SuffState {
 			getPlayer(playerIndex).currentConfidence += getPlayer(playerIndex).confidenceChangeOnBlankShot;
 			cylinderContent.shift();
 			checkToReloadCylinder();
-			if (GameplayManager.currentGamemode.skillsFixedPool.length + GameplayManager.currentGamemode.skillsRandomPool.length > 0) {
-				giveSkillsToAllPlayers(GameplayManager.currentGamemode.skillsReplenishCountOnBlank);
+			if (Gameplay.currentGamemode.skillsFixedPool.length + Gameplay.currentGamemode.skillsRandomPool.length > 0) {
+				giveSkillsToAllPlayers(Gameplay.currentGamemode.skillsReplenishCountOnBlank);
 			}
-			liveRoundDamage += GameplayManager.currentGamemode.cylinderDamageChangeOnBlank;
+			liveRoundDamage += Gameplay.currentGamemode.cylinderDamageChangeOnBlank;
 		}
 		trace(cylinderContent);
 
@@ -906,8 +956,8 @@ class PlayState extends SuffState {
 	}
 
 	function checkToReloadCylinder() {
-		if ((!cylinderContent.contains(true) && GameplayManager.currentGamemode.cylinderReloadOnNoLives) || cylinderContent.length <= 0) {
-			reloadCylinder(GameplayManager.currentGamemode.cylinderLiveCount);
+		if ((!cylinderContent.contains(true) && Gameplay.currentGamemode.cylinderReloadOnNoLives) || cylinderContent.length <= 0) {
+			reloadCylinder(Gameplay.currentGamemode.cylinderLiveCount);
 		}
 	}
 
@@ -924,17 +974,17 @@ class PlayState extends SuffState {
 	}
 
 	function giveSkillsToAllPlayers(count:Int = 1) {
-		var leArray = (GameplayManager.currentGamemode.skillsRandomPool.length > 0) ? GameplayManager.currentGamemode.skillsRandomPool : GameplayManager.currentGamemode.skillsFixedPool;
-		var leCount = (GameplayManager.currentGamemode.skillsRandomPool.length > 0) ? count : leArray.length;
+		var leArray = (Gameplay.currentGamemode.skillsRandomPool.length > 0) ? Gameplay.currentGamemode.skillsRandomPool : Gameplay.currentGamemode.skillsFixedPool;
+		var leCount = (Gameplay.currentGamemode.skillsRandomPool.length > 0) ? count : leArray.length;
 		for (char in characterGroup) {
-			if (GameplayManager.currentGamemode.skillsFixedPool.length > 0)
+			if (Gameplay.currentGamemode.skillsFixedPool.length > 0)
 				char.currentSkills = [];
 			for (i in 0...leCount) {
 				var skillName = '';
-				if (GameplayManager.currentGamemode.skillsRandomPool.length > 0)
-					skillName = GameplayManager.currentGamemode.skillsRandomPool[FlxG.random.int(0, GameplayManager.currentGamemode.skillsRandomPool.length - 1)]; else if (GameplayManager.currentGamemode.skillsFixedPool.length > 0)
+				if (Gameplay.currentGamemode.skillsRandomPool.length > 0)
+					skillName = Gameplay.currentGamemode.skillsRandomPool[FlxG.random.int(0, Gameplay.currentGamemode.skillsRandomPool.length - 1)]; else if (Gameplay.currentGamemode.skillsFixedPool.length > 0)
 					skillName = leArray[i];
-				char.currentSkills.push(new Skill(skillName, null, GameplayManager.currentGamemode.skillsCostMultiplier));
+				char.currentSkills.push(new Skill(skillName, null, Gameplay.currentGamemode.skillsCostMultiplier));
 			}
 			if (char.currentSkills.length > 3)
 				char.currentSkills.shift(); // Maximum of three skills
@@ -952,16 +1002,40 @@ class PlayState extends SuffState {
 			members.insert(members.indexOf(characterGroup) + 1, new Bloosh(character.x, character.y - character.height / 2));
 			if (!Preferences.data.decreaseDetail) {
 				members.insert(members.indexOf(characterGroup) + 1, new ScrapEmitter(character.x, character.y - character.width / 2, character.id, stage.data.characterY, character.maxPressure));
-				members.insert(members.indexOf(characterGroup) + 1, new PuffEmitter(character.x, character.y - character.height / 2));
+
+				var particleMultiplier:Float = 1;
+				if (Gameplay.currentFiller.particleType == Liquid) {
+					if (!Preferences.data.decreaseDetail) {
+						for (i in 0...FlxG.random.int(6, 9)) {
+							var stain = new Stain(FlxG.random.float(0, FlxG.width), FlxG.random.float(0, FlxG.height), Gameplay.currentFiller.particleColor);
+							stain.camera = camEffects;
+							members.insert(0, stain);
+						}
+					}
+					particleMultiplier = 3;
+				}
+				members.insert(members.indexOf(characterGroup) + 1, new PopEmitter(character.x, character.y - character.height / 2, stage.data.characterY, Gameplay.currentFiller.particleType, particleMultiplier, Gameplay.currentFiller.particleColor));
+				if (!Preferences.data.decreaseDetail) {
+					var npcCount = FlxG.random.int(Gameplay.currentFiller.npcCountOnPop[0], Gameplay.currentFiller.npcCountOnPop[1]);
+					for (i in 0...npcCount) {
+						var npc:NPC = new NPC(Gameplay.currentFiller.npcOnPop, character.x, character.y - character.height / 2, character.id);
+						npc.transmutateThreshold = npcCount;
+						npc.velocity.set(
+							FlxG.random.float(-480, 480),
+							FlxG.random.float(-480, 0)
+						);
+						npcGroup.add(npc);
+					}
+				}
 			}
-			SuffState.playSound(Paths.sound('game/belly/burst'));
+			SuffState.playSound(Gameplay.currentFiller.getBurstSound());
 			getPlayer(playerIndex).disableBellySounds = true;
 			screenShake(0.03, 0.5);
 			screenFlash();
 			getPlayer(playerIndex).acceleration.y = 4800 * getPlayer(playerIndex).poppingGravityMultiplier;
 			getPlayer(playerIndex).velocity.x += 320 * (playerIndex >= characterGroup.members.length / 2 ? 1 : -1) * getPlayer(playerIndex)
-			.poppingVelocityMultiplier[0];
-			getPlayer(playerIndex).velocity.y = -1600 * getPlayer(playerIndex).poppingVelocityMultiplier[1];
+			.poppingVelocityMultiplier[0] / Gameplay.currentFiller.gravityMultiplier;
+			getPlayer(playerIndex).velocity.y = -1200 * getPlayer(playerIndex).poppingVelocityMultiplier[1];
 		} else {
 			getPlayer(playerIndex).playAnim('idle');
 		}
@@ -996,32 +1070,38 @@ class PlayState extends SuffState {
 		focusCameraOnStage();
 		cameraFocusButton.visible = false;
 
-		var allCPU:Bool = true;
-		var allCpuDidntUseSkill:Bool = true;
+		var allHumanPlayers:Bool = true;
+		var humansThatUsedSkills:Int = 0;
 		var allCpuAtHighestLevel:Bool = true;
 		for (num => char in characterGroup) {
-			if (char.cpuControlled || char.getPressurePercentage() > 1) {
-				allCPU = false;
-				if (char.skillUseCount > 0)
-					allCpuDidntUseSkill = false;
-				if (char.cpuSkillLevel != Constants.CPU_SKILL_LIMIT[1])
+			if (char.cpuControlled) {
+				allHumanPlayers = false;
+				if (char.cpuSkillLevel < Constants.CPU_SKILL_LIMIT[1])
 					allCpuAtHighestLevel = false;
+				continue;
+			}
+			if (char.skillUseCount > 0)
+				humansThatUsedSkills++;
+			if (char.getPressurePercentage() > 1) {
 				continue;
 			}
 
 			Achievements.advanceProgress('firstWin', [true]);
-			Achievements.advanceProgress('allGameModeWins', [GameplayManager.currentGamemode.id]);
+			Achievements.advanceProgress('allGameModeWins', [Gameplay.currentGamemode.id]);
 			Achievements.advanceProgress('allCharacterWins', [char.id]);
+			Achievements.advanceProgress('allFillerWins', [Gameplay.currentFiller.id]);
 			if (char.getPressurePercentage() <= 0)
 				Achievements.advanceProgress('noPressureWin', [true]); else if (char.getPressurePercentage() == 1)
 				Achievements.advanceProgress('fullPressureWin', [true]);
+			if (allCpuAtHighestLevel)
+				Achievements.advanceProgress('winAgainstStrategicCPUs', [true]);
+			if (characterGroup.members.length == 2)
+				Achievements.advanceProgress('twoPlayers', [true]);
+			else if (characterGroup.members.length == 6)
+				Achievements.advanceProgress('sixPlayers', [true]);
 
-			if (allCPU) {
-				if (allCpuAtHighestLevel)
-					Achievements.advanceProgress('winAgainstStrategicCPUs', [true]);
-			} else {
-				if (allCpuDidntUseSkill)
-					Achievements.advanceProgress('winByYourself', [true]);
+			if (allHumanPlayers && humansThatUsedSkills == 1) {
+				Achievements.advanceProgress('winByYourself', [true]);
 			}
 		}
 
@@ -1042,21 +1122,21 @@ class PlayState extends SuffState {
 
 	function finishEndCutscene() {
 		SuffState.playMusic('null');
-		ResultsState.data = Scoring.judgeGame(characterGroup.members);
+		ResultsState.data = ScoringUtil.judgeGame(characterGroup.members);
 		FlxTransitionableState.skipNextTransOut = true;
 		SuffState.switchState(new ResultsState(), FADE);
 	}
 
 	function changeTurnNumber(change:Int = 0) {
-		currentTurnIndex = (currentTurnIndex + change) % CharacterManager.selectedCharacterList.length;
+		currentTurnIndex = (currentTurnIndex + change) % Gameplay.selectedCharacterList.length;
 	}
 
 	function changeTurn(change:Int = 0, slient:Bool = false) {
 		var PrevTurn:Int = currentTurnIndex;
-		var flipX:Bool = PrevTurn >= Std.int(CharacterManager.selectedCharacterList.length / 2) && PrevTurn != CharacterManager.selectedCharacterList.length - 1;
+		var flipX:Bool = PrevTurn >= Std.int(Gameplay.selectedCharacterList.length / 2) && PrevTurn != Gameplay.selectedCharacterList.length - 1;
 		changeTurnNumber(change);
 		getPlayer(PrevTurn).canUseSkills = true;
-		if (!(Preferences.data.ignoreEliminatedPlayers && getPlayer(PrevTurn).isEliminated())) {
+		if (!(Preferences.data.skipEliminatedPlayers && getPlayer(PrevTurn).isEliminated())) {
 			focusCameraOnPlayer(PrevTurn);
 			getPlayer(PrevTurn).playAnim('pass', true, true, flipX);
 		}
@@ -1066,10 +1146,10 @@ class PlayState extends SuffState {
 		if (change != 0) {
 			pumpGun.visible = true;
 			doTween('pumpGunPass', FlxTween.tween(pumpGun, {x: pumpGunXDestinations[currentTurnIndex]}, 0.5, {
-				startDelay: (!(Preferences.data.ignoreEliminatedPlayers && getPlayer(currentTurnIndex).isEliminated()) ? 0.5 : 0), ease: FlxEase.quadOut, onStart: function(_:FlxTween) {
+				startDelay: (!(Preferences.data.skipEliminatedPlayers && getPlayer(currentTurnIndex).isEliminated()) ? 0.5 : 0), ease: FlxEase.quadOut, onStart: function(_:FlxTween) {
 					if (!slient)
 						SuffState.playSound(Paths.sound('game/weaponSlide'));
-					if (!(Preferences.data.ignoreEliminatedPlayers && getPlayer(currentTurnIndex).isEliminated()))
+					if (!(Preferences.data.skipEliminatedPlayers && getPlayer(currentTurnIndex).isEliminated()))
 						focusCameraOnPlayer(currentTurnIndex); else
 						changeTurn(change, true);
 				}, onComplete: function(_:FlxTween) {
@@ -1098,8 +1178,8 @@ class PlayState extends SuffState {
 		} else {
 			getPlayer(currentTurnIndex).playAnim('prepareShoot', false);
 			pumpGun.visible = false;
-			togglePlayerUI(!CharacterManager.cpuControlled[currentTurnIndex]);
-			toggleLetterbox(CharacterManager.cpuControlled[currentTurnIndex]);
+			togglePlayerUI(!Gameplay.cpuControlled[currentTurnIndex]);
+			toggleLetterbox(Gameplay.cpuControlled[currentTurnIndex]);
 		}
 	}
 
@@ -1218,7 +1298,7 @@ class PlayState extends SuffState {
 	}
 
 	function focusCameraOnPlayer(playerIndex:Int) {
-		var characterCameraOffset:Array<Int> = getPlayer(playerIndex).cameraOffset;
+		var characterCameraOffset:Array<Float> = getPlayer(playerIndex).cameraOffset;
 		if (getPlayer(playerIndex).isEliminated() && (currentSessionEnablePopping && !getPlayer(playerIndex).disablePopping))
 			characterCameraOffset = getPlayer(playerIndex).poppedCameraOffset;
 
@@ -1273,7 +1353,7 @@ class PlayState extends SuffState {
 		if (reallyMoveIn) {
 			doTween('letterboxTopTween', FlxTween.tween(letterboxTop, {y: 0}, 1, {
 				ease: FlxEase.cubeOut, onUpdate: function(_:FlxTween) {
-					pauseButton.y = letterboxTop.y + letterboxTop.height + 20 + ScreenSafeZone.Y;
+					pauseButton.y = letterboxTop.y + letterboxTop.height + 20 + ScreenSafeArea.Y;
 				}
 			}));
 			doTween('letterboxBottomTween', FlxTween.tween(letterboxBottom, {y: FlxG.height - letterboxBottom.height}, 1, {
@@ -1284,7 +1364,7 @@ class PlayState extends SuffState {
 		} else {
 			doTween('letterboxTopTween', FlxTween.tween(letterboxTop, {y: -letterboxTop.height}, 1, {
 				ease: FlxEase.cubeOut, onUpdate: function(_:FlxTween) {
-					pauseButton.y = letterboxTop.y + letterboxTop.height + 20 + ScreenSafeZone.Y;
+					pauseButton.y = letterboxTop.y + letterboxTop.height + 20 + ScreenSafeArea.Y;
 				}
 			}));
 			doTween('letterboxBottomTween', FlxTween.tween(letterboxBottom, {y: FlxG.height}, 1, {
@@ -1305,10 +1385,10 @@ class PlayState extends SuffState {
 		}
 		reloadRevealUI();
 		if (moveIn) {
-			doTween('shootButtonMoveTween', FlxTween.tween(shootButton, {x: ScreenSafeZone.X}, 0.5, {ease: FlxEase.cubeOut}));
+			doTween('shootButtonMoveTween', FlxTween.tween(shootButton, {x: ScreenSafeArea.X}, 0.5, {ease: FlxEase.cubeOut}));
 			doTween('skillCardsGroupMoveTween', FlxTween.tween(skillCardsGroup, {x: skillCardsGroupPaddingX}, 0.5, {ease: FlxEase.cubeOut}));
 			doTween('uiBGGroupMoveTween', FlxTween.tween(uiBGGroup, {x: 0}, 0.25, {ease: FlxEase.cubeOut}));
-			doTween('uiRevealGroupMoveTween', FlxTween.tween(uiRevealGroup, {x: ScreenSafeZone.X + shootButton.width}, 0.325, {ease: FlxEase.cubeOut}));
+			doTween('uiRevealGroupMoveTween', FlxTween.tween(uiRevealGroup, {x: ScreenSafeArea.X + shootButton.width}, 0.325, {ease: FlxEase.cubeOut}));
 		} else {
 			doTween('shootButtonMoveTween', FlxTween.tween(shootButton, {x: -shootButton.width}, 0.5, {ease: FlxEase.cubeOut}));
 			doTween('skillCardsGroupMoveTween', FlxTween.tween(skillCardsGroup, {x: -skillCardsGroup.width}, 0.5, {ease: FlxEase.cubeOut}));
@@ -1370,8 +1450,6 @@ class PlayState extends SuffState {
 			tmr.active = false);
 		FlxTween.globalManager.forEach(function(twn:FlxTween) if (!twn.finished)
 			twn.active = false);
-
-		openSubState(new PauseSubState());
 	}
 
 	public function resumeGame() {
@@ -1382,6 +1460,8 @@ class PlayState extends SuffState {
 			tmr.active = true);
 		FlxTween.globalManager.forEach(function(twn:FlxTween) if (!twn.finished)
 			twn.active = true);
+
+		setWindowTitle();
 
 		super.closeSubState();
 	}
@@ -1395,7 +1475,7 @@ class PlayState extends SuffState {
 		if (!isPaused) {
 			FlxG.camera.zoom = FlxMath.lerp(FlxG.camera.zoom, camFollowZoom, FlxMath.bound(elapsed * 5, 0, 1));
 
-			if (Controls.justPressed('shoot') && !CharacterManager.cpuControlled[currentTurnIndex] && !shootButton.disabled) {
+			if (Controls.justPressed('shoot') && !Gameplay.cpuControlled[currentTurnIndex] && !shootButton.disabled) {
 				deployGun(currentTurnIndex, function() return getPlayer(currentTurnIndex).getPressurePercentage());
 			}
 
@@ -1445,8 +1525,10 @@ class PlayState extends SuffState {
 			} else {
 				if (Controls.justPressed('camera') && !cameraFocusButton.disabled)
 					toggleCameraFocus();
-				else if (Controls.justPressed('pause') && canPause)
+				else if (Controls.justPressed('pause') && canPause) {
 					pauseGame();
+					openSubState(new PauseSubState());
+				}
 			}
 
 			for (player in characterGroup) {

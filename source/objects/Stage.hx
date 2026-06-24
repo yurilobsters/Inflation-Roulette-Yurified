@@ -6,16 +6,23 @@ import backend.typedefs.StageData;
 import tjson.TJSON as Json;
 import backend.typedefs.StageObjectData;
 import backend.typedefs.AnimationData;
-import backend.CharacterManager;
+import backend.Gameplay;
 
 class Stage extends FlxBasic {
 	private var game(get, never):PlayState;
 	public var data:StageData;
 	public var objects:Map<String, StageObject> = new Map<String, StageObject>();
 
-	public function new(id:String = 'classic') {
+	public function new(id:String = 'reloaded') {
 		data = cast Json.parse(Paths.getTextFromFile('data/stages/$id.json'));
 		data.id = id;
+		if (data.music == null)
+			data.music = 'stages/${data.id}';
+		var musicPath = Paths.getMusicPath(data.music);
+		if (!Paths.fileExists(musicPath)) {
+			trace('Specialized music path for stage ($musicPath) does not exist. Using default game music path');
+			data.music = 'stages/default';
+		}
 		super();
 	}
 
@@ -24,19 +31,19 @@ class Stage extends FlxBasic {
 		var tableObjects:Array<StageObjectData> = data.tableObjects;
 		var foregroundObjects:Array<StageObjectData> = data.foregroundObjects;
 		for (object in backgroundObjects) {
-			if (object.hideInDecreaseDetail == true) continue;
+			if (Preferences.data.decreaseDetail && object.hideInDecreaseDetail == true) continue;
 			var obj:StageObject = loadObject(object, data.id);
 			addBehindCharacters(object.id, obj);
 		}
 		trace('Loaded background objects');
 		for (object in tableObjects) {
-			if (object.hideInDecreaseDetail == true) continue;
+			if (Preferences.data.decreaseDetail && object.hideInDecreaseDetail == true) continue;
 			var obj:StageObject = loadObject(object, data.id);
 			addBehindGun(object.id, obj);
 		}
 		trace('Loaded table objects');
 		for (object in foregroundObjects) {
-			if (object.hideInDecreaseDetail == true) continue;
+			if (Preferences.data.decreaseDetail && object.hideInDecreaseDetail == true) continue;
 			var obj:StageObject = loadObject(object, data.id);
 			addObject(object.id, obj);
 		}
@@ -104,9 +111,9 @@ class Stage extends FlxBasic {
 		if (objectData.scrollFactor != null && objectData.scrollFactor.length == 2)
 			object.scrollFactor.set(objectData.scrollFactor[0], objectData.scrollFactor[1]);
 		if (objectData.hideCharacter != null)
-			object.visible = !CharacterManager.selectedCharacterList.contains(objectData.hideCharacter);
+			object.visible = !Gameplay.selectedCharacterList.contains(objectData.hideCharacter);
 		if (objectData.showCharacter != null)
-			object.visible = CharacterManager.selectedCharacterList.contains(objectData.showCharacter);
+			object.visible = Gameplay.selectedCharacterList.contains(objectData.showCharacter);
 		if (objectData.scale != null) {
 			if (objectData.scale.length == 2)
 				object.scale.set(objectData.scale[0], objectData.scale[1]); else if (objectData.scale.length == 1)

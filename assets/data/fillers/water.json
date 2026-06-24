@@ -1,0 +1,25 @@
+{
+	"displayColor": "#00C0FF",
+	"liquidColor": "#C0E0FF",
+
+	"particleType": "liquid",
+
+	"gurgles": {
+		"archetype": "liquid",
+		"samples": 20
+	},
+	"creaks": {
+		"archetype": "liquid",
+		"samples": 5
+	},
+	"leaks": {
+		"archetype": "liquid",
+		"samples": 4
+	},
+	"bursts": {
+		"archetype": "liquid",
+		"samples": 1
+	},
+
+	"gravityMultiplier": 1
+}
