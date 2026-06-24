@@ -27,6 +27,9 @@ class SaveVariables {
 	public var playCursorSounds:Bool = true;
 	public var enableBellyGurgles:Bool = false;
 	public var enableBellyCreaks:Bool = true;
+	public var enableBelching:Bool = true;
+	public var enableOralLeaking:Bool = true;
+	public var enableNavelLeaking:Bool = true;
 	public var enableFarts:Bool = false;
 	public var cacheOnGPU:Bool = true;
 	public var showDebugText:Bool = false;
@@ -35,6 +38,7 @@ class SaveVariables {
 	public var showCurrentStateOnDebugText:Bool = false;
 	public var checkForUpdates:Bool = true;
 	public var enableGLSL:Bool = true;
+	public var enableDiscoloration:Bool = true;
 	public var decreaseDetail:Bool = false;
 	public var decreaseSounds:Bool = false;
 	public var language:String = 'en-US';

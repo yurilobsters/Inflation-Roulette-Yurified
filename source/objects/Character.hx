@@ -76,6 +76,8 @@ class Character extends FlxSprite {
 	var creakTimer:Float = 0;
 	var navelLeakTimer:Float = 0;
 	var swirlSpawnTimer:Float = 0;
+	var fartTimer:Float = 0;
+
 	static var timerMultiplier:Float = 1;
 
 	public function new(character:String, x:Float = 0, y:Float = 0) {

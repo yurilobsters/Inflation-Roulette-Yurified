@@ -1,17 +1,22 @@
 package backend.typedefs;
 
 typedef CharacterCosmeticData = {
-	spriteSheets:Array<String>,
-	animations:Array<AnimationData>,
-	?belchThreshold:Int,
-	?leakThreshold:Int,
-	?navelLeakThreshold:Int,
-	?fartThreshold:Int,
-	?gurgleThreshold:Int,
-	?creakThreshold:Int,
-	?voicePitch:Float,
-	?antialiasing:Bool,
-	?disablePopping:Bool,
-	?poppingVelocityMultiplier:Array<Float>,
-	?poppingGravityMultiplier:Float
-}
+		spriteSheets:Array<String>,
+		animations:Array<AnimationData>,
+		?belchThreshold:Int,
+		?leakThreshold:Int,
+		?navelLeakThreshold:Int,
+		?fartThreshold:Int,
+		?gurgleThreshold:Int,
+		?creakThreshold:Int,
+		?voicePitch:Float,
+		?antialiasing:Bool,
+		?disablePopping:Bool,
+		?poppingVelocityMultiplier:Array<Float>,
+		?poppingGravityMultiplier:Float,
+
+		?originPosition:Array<Float>,
+		?poppedCameraOffset:Array<Float>,
+		?cameraOffset:Array<Float>,
+		?particleOffsets:CharacterParticleOffsetsData
+	}

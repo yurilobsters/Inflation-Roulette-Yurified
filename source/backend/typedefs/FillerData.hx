@@ -13,6 +13,7 @@ typedef FillerData = {
 	?belches:FillerSoundData,
 	?leaks:FillerSoundData,
 	?bursts:FillerSoundData, // "air"
+	?farts:FillerSoundData,
 
 	?gravityMultiplier:Float, // 1
 	?stumbleForce:Float, // 0
