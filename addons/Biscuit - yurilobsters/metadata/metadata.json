@@ -1,11 +1,9 @@
 {
 	"authors": [
-		[
-			"yurilobsters",
-			"Author"
-		]
+		["yurilobsters", "Artist/Animator"],
+		["FurRavor", "Character Design"]
 	],
 	"name": "Biscuit",
-	"color": "#808080",
-	"description": "null\nCreated by IRR Character Creator"
+	"color": "#3E3E3E",
+	"description": "A petite black cat who likes to cause trouble with his antics."
 }

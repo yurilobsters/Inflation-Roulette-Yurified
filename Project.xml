@@ -61,7 +61,6 @@
 	</section>
 	<section if="_BUILD_IN_ADDONS">
 		<assets path='addons/Example Addon' rename='assets' preload="true"/>
-		<assets path='addons/Biscuit - yurilobsters' rename='assets' preload="true"/>
 		<assets path='conditionalAssets/BUILD_IN_ADDONS' rename='assets' exclude="*.ogg" if="_USE_MP3" preload="true"/>
 		<assets path='conditionalAssets/BUILD_IN_ADDONS' rename='assets' exclude="*.mp3" unless="_USE_MP3" preload="true"/>
 	</section>

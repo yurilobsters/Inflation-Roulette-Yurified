@@ -5,7 +5,7 @@
 			"indices": [],
 			"fps": 24,
 			"soundPaths": [],
-			"loop": true,
+			"loop": false,
 			"name": "idle0"
 		},
 		{
@@ -13,7 +13,7 @@
 			"indices": [],
 			"fps": 24,
 			"soundPaths": [],
-			"loop": true,
+			"loop": false,
 			"name": "idle1"
 		},
 		{
@@ -21,7 +21,7 @@
 			"indices": [],
 			"fps": 24,
 			"soundPaths": [],
-			"loop": true,
+			"loop": false,
 			"name": "idle2"
 		},
 		{
@@ -29,7 +29,7 @@
 			"indices": [],
 			"fps": 24,
 			"soundPaths": [],
-			"loop": true,
+			"loop": false,
 			"name": "idle3"
 		},
 		{
@@ -37,7 +37,7 @@
 			"indices": [],
 			"fps": 24,
 			"soundPaths": [],
-			"loop": true,
+			"loop": false,
 			"name": "idle4"
 		},
 		{
@@ -45,7 +45,7 @@
 			"indices": [],
 			"fps": 24,
 			"soundPaths": [],
-			"loop": true,
+			"loop": false,
 			"name": "idleNull"
 		},
 		{
@@ -53,7 +53,7 @@
 			"indices": [],
 			"fps": 24,
 			"soundPaths": [],
-			"loop": true,
+			"loop": false,
 			"name": "idleOverinflated"
 		},
 		{
@@ -61,7 +61,7 @@
 			"indices": [],
 			"fps": 24,
 			"soundPaths": [],
-			"loop": true,
+			"loop": false,
 			"name": "prepareShoot0"
 		},
 		{
@@ -69,7 +69,7 @@
 			"indices": [],
 			"fps": 24,
 			"soundPaths": [],
-			"loop": true,
+			"loop": false,
 			"name": "prepareShoot1"
 		},
 		{
@@ -77,7 +77,7 @@
 			"indices": [],
 			"fps": 24,
 			"soundPaths": [],
-			"loop": true,
+			"loop": false,
 			"name": "prepareShoot2"
 		},
 		{
@@ -85,7 +85,7 @@
 			"indices": [],
 			"fps": 24,
 			"soundPaths": [],
-			"loop": true,
+			"loop": false,
 			"name": "prepareShoot3"
 		},
 		{
@@ -93,7 +93,7 @@
 			"indices": [],
 			"fps": 24,
 			"soundPaths": [],
-			"loop": true,
+			"loop": false,
 			"name": "prepareShoot4"
 		},
 		{
@@ -341,7 +341,7 @@
 			"indices": [],
 			"fps": 24,
 			"soundPaths": [],
-			"loop": true,
+			"loop": false,
 			"name": "popped"
 		}
 	],

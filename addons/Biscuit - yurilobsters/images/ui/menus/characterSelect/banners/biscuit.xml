@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextureAtlas imagePath="biscuit.png">
+<TextureAtlas imagePath="2.png">
 	<!-- Created with IRR Character Creator version 1.0.0 -->
 	<SubTexture name="start0000" x="0" y="0" width="320" height="468"/>
 	<SubTexture name="start0001" x="320" y="0" width="320" height="468"/>
